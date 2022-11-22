@@ -80,7 +80,8 @@ def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, 
             f_x_i = model.value(x_i)
             xi_prime = x_i + np.random.normal(0, sigma, len(x_i))
             for k in range(k):
-                xi_prime = x_i + proj.proj(eta1 * np.sign(xi_prime + loss.dx(model, {'x': xi_prime, 'y': f_x_i})) - x_i, xi)
+                xi_prime = x_i + proj.proj(eta1 * np.sign(xi_prime + loss.dx(model, {'x': xi_prime, 'y': f_x_i})) - x_i,
+                                           xi)
             batch_prime += [{'x': xi_prime, 'y': f_x_i}]
         theta = model_.get_theta() - eta2 * (
                 loss.dtheta_batch(model, batch) + loss.dtheta_batch(model, batch_prime) / lamb)
@@ -93,16 +94,16 @@ def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, 
     return model, training_loss
 
 
-def _build_constraint_matrix(xi: float, data: List[Data]) -> matrix:
+def _build_constraint_matrix(xi: float, data: List[Data], norm_bound: float = 1.0) -> matrix:
     def f(s: Data) -> matrix:
         x = s.get('x').tolist()
         y = s.get('y')
-        return matrix([-y / xi * x_i for x_i in x])
+        return matrix([-(y * x_i)/(xi * norm_bound)for x_i in x])
 
     return matrix([[f(s)] for s in data]).T
 
 
-def robust_adv_data_driven_binary_classifier(xi: float, data: List[Data]) -> np.array:
+def robust_adv_data_driven_binary_classifier(xi: float, data: List[Data], norm_bound: float = 1.0) -> np.array:
     """
     Our Algorithm, worst case
 
@@ -123,7 +124,7 @@ def robust_adv_data_driven_binary_classifier(xi: float, data: List[Data]) -> np.
     m = len(data)
     d = len(data[0].get('x'))
     c = matrix([0.0] * d + [1. / m] * m + [0.0] * d)
-    b = matrix([[-2.0] * m + [0.0] * m + [0.0] * d + [0.0] * d + [1.0]])
+    b = matrix([[-2.0] * m + [0.0] * m + [0.0] * d + [0.0] * d + [norm_bound]])
     S = _build_constraint_matrix(xi, data)
     A = matrix([[S, _zero(m, d), _id(d), -_id(d), _zero(1, d)],
                 [-_id(m), -_id(m), _zero(d, m), _zero(d, m), _zero(1, m)],

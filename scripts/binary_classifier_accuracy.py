@@ -7,6 +7,7 @@ from utils.norm import Linf
 from adversary.solver import adversarial_gd_fast_attack, robust_adv_data_driven_binary_classifier, \
     adversarial_gd_pgd_attack, adversarial_trades
 from data.linear_data_generator import generate_synthetic_linear_model_samples
+from utils.solver import gd
 from utils.types import Data
 
 # Parameters
@@ -27,32 +28,30 @@ def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
     return correct_classification / m
 
 
-accuracy_results = pd.DataFrame(np.zeros([N, 4]),
-                                columns=["Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"])
+columns = ["Logistic regression", "Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"]
+accuracy_results = pd.DataFrame(np.zeros([N, 5]), columns=columns)
 data = generate_synthetic_linear_model_samples(sigma, m, N)
-# adversarial training - FGSM
+
 logm0 = LogisticRegression(np.random.rand(2))
 for k in range(len(data)):
     data_k = data[k]
-    logm_adv_fgsm, _ = adversarial_gd_fast_attack(CrossEntropy(), logm0, data_k, 1E-5, xi, Linf)
+    logm, _ = gd(CrossEntropy(), logm0, data_k, 1E-5)
     accuracy_results.iloc[k, 0] = calculate_accuracy(data_k,
+                                                     lambda x: 1.0 if logm.value(x) >= 0.5 else 0.0)
+
+    logm_adv_fgsm, _ = adversarial_gd_fast_attack(CrossEntropy(), logm0, data_k, 1E-5, xi, Linf)
+    accuracy_results.iloc[k, 1] = calculate_accuracy(data_k,
                                                      lambda x: 1.0 if logm_adv_fgsm.value(x) >= 0.5 else 0.0)
     logm_adv_pgd, _ = adversarial_gd_pgd_attack(CrossEntropy(), logm0, data_k, 1E-5, xi, Linf)
-    accuracy_results.iloc[k, 1] = calculate_accuracy(data_k,
+    accuracy_results.iloc[k, 2] = calculate_accuracy(data_k,
                                                      lambda x: 1.0 if logm_adv_pgd.value(x) >= 0.5 else 0.0)
     lamb = 0.1
     logm_adv_trades, _ = adversarial_trades(CrossEntropy(), logm0, data_k, Linf, 1E-5, xi, lamb, int(m / 10))
-    accuracy_results.iloc[k, 2] = calculate_accuracy(data_k,
+    accuracy_results.iloc[k, 3] = calculate_accuracy(data_k,
                                                      lambda x: 1.0 if logm_adv_trades.value(x) >= 0.5 else 0.0)
     w = robust_adv_data_driven_binary_classifier(xi, data_k)
-    accuracy_results.iloc[k, 3] = calculate_accuracy(data_k,
+    accuracy_results.iloc[k, 4] = calculate_accuracy(data_k,
                                                      lambda x: 1.0 if x.dot(w) >= 0.0 else 0.0)
 
 accuracy_results.describe()
 accuracy_results.hist()
-
-
-
-
-
-

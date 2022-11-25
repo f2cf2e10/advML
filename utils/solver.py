@@ -17,7 +17,7 @@ def gd(loss: Loss, model0: Model, data: List[Data], tol: float, eta: float = 0.0
         delta = np.abs(loss.f_batch(model, data) - loss.f_batch(model_, data))
         training_loss += [loss.f_batch(model, data)]
         model_ = model.copy()
-        print(i, delta)
         i += 1
+    print(i, delta)
     return model, training_loss
 

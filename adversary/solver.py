@@ -21,8 +21,8 @@ def adversarial_gd_fast_attack(loss: Loss, model0: Model, data: List[Data], tol:
         delta = np.abs(loss.f_batch(model, adv_data) - loss.f_batch(model_, adv_data))
         training_loss += [loss.f_batch(model, adv_data)]
         model_ = model.copy()
-        print(i, delta)
         i += 1
+    print(i, delta)
     return model, training_loss
 
 
@@ -41,8 +41,8 @@ def adversarial_gd_pgd_attack(loss: Loss, model0: Model, data: List[Data], tol: 
         delta = np.abs(loss.f_batch(model, adv_data) - loss.f_batch(model_, adv_data))
         training_loss += [loss.f_batch(model, adv_data)]
         model_ = model.copy()
-        print(i, delta)
         i += 1
+    print(i, delta)
     return model, training_loss
 
 
@@ -89,8 +89,8 @@ def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, 
         delta = np.abs(loss.f_batch(model, data) - loss.f_batch(model_, data))
         training_loss += [loss.f_batch(model, data)]
         model_ = model.copy()
-        print(j, delta)
         j += 1
+    print(j, delta)
     return model, training_loss
 
 

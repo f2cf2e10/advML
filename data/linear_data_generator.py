@@ -13,15 +13,13 @@ def _initialize(seed: int, with_const: float):
 def _generate_synthetic_linear_model_sample(a: float, b: float, noise: float, m: int,
                                             with_const: bool = False) -> List[Data]:
     # data generation
-    lm = lambda x: np.float64(1.0) if x[1] > a * x[0] + b + noise * np.random.randn() else np.float64(0.)
+    lm = lambda x: np.float64(1.0) if x[1] > a * x[0] + b + noise * np.random.randn() else np.float64(-1.)
     x = (2 * np.random.rand(2 * m) - 1).reshape([m, 2])
     if with_const:
         x = np.hstack([x, np.ones(m).reshape(m, 1)])
     y = [lm(x_i) for x_i in x]
     data = [{'x': x[i], 'y': y[i]} for i in range(len(x))]
     d = len(data[0].get('x'))
-    if with_const:
-        d = d + 1
     return data, d, x, y
 
 

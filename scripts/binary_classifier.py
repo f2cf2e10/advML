@@ -17,8 +17,8 @@ n = 1000
 xi = 0.1
 
 # training - logistic regression
-a, b, d, data, x, y = generate_synthetic_linear_model(sigma, n)
-logm0 = LogisticRegression(np.random.rand(d))
+a, b, d, data, x, y = generate_synthetic_linear_model(sigma, n, with_const=True)
+logm0 = LogisticRegression(np.random.rand(x.shape[1]))
 logm, conv = gd(CrossEntropy(), logm0, data, 1E-5)
 plt.figure()
 plt.scatter(x[:, 0], x[:, 1], marker="o", c=y, s=35)

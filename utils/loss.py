@@ -28,16 +28,16 @@ class L2(Loss):
 class CrossEntropy(Loss):
 
     def f(self, model: Model, data: Data) -> np.float64:
-        y = data.get("y")
+        y = (data.get("y") + 1) / 2
         x = data.get("x")
         return np.float64(- (y * np.log(model.value(x)) + (1 - y) * np.log(1 - model.value(x))))
 
     def dtheta(self, model: Model, data: Data) -> np.ndarray:
-        y = data.get("y")
+        y = (data.get("y") + 1) / 2
         x = data.get("x")
         return -(y * 1. / model.value(x) * model.dtheta(x) - (1 - y) * 1. / (1 - model.value(x)) * model.dtheta(x))
 
     def dx(self, model: Model, data: Data) -> np.ndarray:
-        y = data.get("y")
+        y = (data.get("y") + 1) / 2
         x = data.get("x")
         return -(y * 1. / model.value(x) * model.dx(x) - (1 - y) * 1. / (1 - model.value(x)) * model.dx(x))

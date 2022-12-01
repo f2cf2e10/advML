@@ -72,7 +72,7 @@ plt.show()
 
 # adversarial training - Our model
 a, b, d, data, x, y = generate_synthetic_linear_model(sigma, n)
-w = robust_adv_data_driven_binary_classifier(xi, data)
+w, _ = robust_adv_data_driven_binary_classifier(xi, data)
 plt.figure()
 plt.scatter(x[:, 0], x[:, 1], marker="o", c=y, s=35)
 plt.scatter(x[:, 0], x[:, 1], marker="+", c=[1.0 if x_i.dot(w) >= 0.0 else 0.0 for x_i in x], s=35)

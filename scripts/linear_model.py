@@ -5,7 +5,7 @@ from utils.loss import L2
 from utils.model import LinearRegression
 from utils.norm import Linf
 from utils.solver import gd
-from adversary.solver import adversarial_gd_fast_attack, robust_adv_data_driven_binary_classifier
+from adversary.solver import adversarial_gd_fast_attack
 
 # Random cloud of points
 a = 2.0

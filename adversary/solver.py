@@ -131,4 +131,4 @@ def robust_adv_data_driven_binary_classifier(xi: float, data: List[Data], norm_b
                 [_zero(m, d), _zero(m, d), -_id(d), -_id(d), _one(1, d)]])
     sol = solvers.lp(c, A, b)
     w = sol['x'][0:d]
-    return w
+    return w, sol['primal objective']

@@ -75,6 +75,6 @@ def test_solver():
     y = np.random.rand(M).reshape(M, 1)
     xi = 2.0
     data = [{'x': x[i, :], 'y': y[i, 0]} for i in range(x.shape[0])]
-    w = robust_adv_data_driven_binary_classifier(xi, data)
+    w, _ = robust_adv_data_driven_binary_classifier(xi, data)
     print(w)
     assert np.abs(np.sum(np.abs(w)) - 1.0) < 1E-7

@@ -40,7 +40,7 @@ def _generate_synthetic_linear_model_sample_with_cap_normal_distr(a: float, b: f
 def generate_synthetic_linear_model_with_uniform_distr_samples(noise: float, m: int, N: int, seed: int = 7777,
                                                                with_const: bool = False) -> List[List[Data]]:
     # data generation
-    a, b = _initialize(seed, with_const)
+    a, b = _initialize(seed, False)
     data = []
     for i in range(N):
         data_i, _, _, _ = _generate_synthetic_linear_model_sample_with_uniform_distr(a, b, noise, m, with_const)
@@ -50,7 +50,7 @@ def generate_synthetic_linear_model_with_uniform_distr_samples(noise: float, m: 
 
 def generate_synthetic_linear_model_with_uniform_distr_sample(noise: float, m: int, seed: int = 7777,
                                                               with_const: bool = False) -> List[Data]:
-    a, b = _initialize(seed, with_const)
+    a, b = _initialize(seed, False)
     data, d, x, y = _generate_synthetic_linear_model_sample_with_uniform_distr(a, b, noise, m, with_const)
     return a, b, d, data, x, y
 
@@ -58,7 +58,7 @@ def generate_synthetic_linear_model_with_uniform_distr_sample(noise: float, m: i
 def generate_synthetic_linear_model_with_cap_normal_distr_samples(noise: float, m: int, N: int, seed: int = 7777,
                                                                   with_const: bool = False) -> List[List[Data]]:
     # data generation
-    a, b = _initialize(seed, with_const)
+    a, b = _initialize(seed, False)
     data = []
     for i in range(N):
         data_i, _, _, _ = _generate_synthetic_linear_model_sample_with_cap_normal_distr(a, b, noise, m, with_const)
@@ -68,6 +68,6 @@ def generate_synthetic_linear_model_with_cap_normal_distr_samples(noise: float, 
 
 def generate_synthetic_linear_model_with_cap_normal_distr_sample(noise: float, m: int, seed: int = 7777,
                                                                  with_const: bool = False) -> List[Data]:
-    a, b = _initialize(seed, with_const)
+    a, b = _initialize(seed, False)
     data, d, x, y = _generate_synthetic_linear_model_sample_with_cap_normal_distr(a, b, noise, m, with_const)
     return a, b, d, data, x, y

@@ -1,7 +1,7 @@
 import numpy as np
 from utils.model import LogisticRegression
 from adversary.solver import robust_adv_data_driven_binary_classifier
-from data.linear_data_generator import generate_synthetic_linear_model_samples
+from data.linear_data_generator import generate_synthetic_linear_model_with_uniform_distr_samples
 from itertools import repeat
 import multiprocessing
 
@@ -37,7 +37,7 @@ def task(k, data_k, xi, r_rob, rhs_extra_term):
 
 
 logm0 = LogisticRegression(np.random.rand(2))
-data = generate_synthetic_linear_model_samples(0.0, m, N)
+data = generate_synthetic_linear_model_with_uniform_distr_samples(0.0, m, N)
 
 multiprocessing.freeze_support()
 with multiprocessing.Pool(8) as pool:

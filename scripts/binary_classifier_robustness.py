@@ -10,14 +10,15 @@ from utils.model import LogisticRegression
 from utils.norm import Linf
 from adversary.solver import adversarial_gd_fast_attack, robust_adv_data_driven_binary_classifier, \
     adversarial_gd_pgd_attack, adversarial_trades
-from data.linear_data_generator import generate_synthetic_linear_model_samples
+from data.linear_data_generator import generate_synthetic_linear_model_with_uniform_distr_samples, \
+    generate_synthetic_linear_model_with_cap_normal_distr_samples
 from utils.types import Data
 
 # Parameters
 sigma = 0.1  # noise
 m = 1000  # each sample size
 N = 1  # number of samples
-xi = [0.005, 0.05, 0.5]  # adversarial power
+xi = [0.001, 0.01, 0.1]  # adversarial power
 
 
 def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
@@ -31,7 +32,7 @@ def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
     return correct_classification / m
 
 
-data = generate_synthetic_linear_model_samples(sigma, m, N)
+data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, m, N)
 # adversarial training - FGSM
 logm0 = LogisticRegression(np.random.rand(2))
 

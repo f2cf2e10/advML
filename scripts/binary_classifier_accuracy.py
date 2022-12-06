@@ -7,7 +7,7 @@ from utils.model import LogisticRegression
 from utils.norm import Linf
 from adversary.solver import adversarial_gd_fast_attack, robust_adv_data_driven_binary_classifier, \
     adversarial_gd_pgd_attack, adversarial_trades
-from data.linear_data_generator import generate_synthetic_linear_model_samples
+from data.linear_data_generator import generate_synthetic_linear_model_with_uniform_distr_samples
 from utils.solver import gd
 from utils.types import Data
 from itertools import repeat
@@ -33,7 +33,7 @@ def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
 
 
 
-data = generate_synthetic_linear_model_samples(sigma, m, N)
+data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, m, N)
 
 
 def task(k, data_k, logm0, xi, m):

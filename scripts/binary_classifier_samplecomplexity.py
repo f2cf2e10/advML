@@ -12,6 +12,11 @@ xi = 0.1  # adversarial power
 r = 1  # norm_inf{x} <= 1
 delta = 0.01
 
+# Data
+const = True
+data = generate_synthetic_linear_model_with_uniform_distr_samples(0.0, m, N, with_const=const)
+logm0 = LogisticRegression(np.random.rand(data[0][0].get('x').shape[1]), with_const=const)
+
 r_rob = 0.5 + (0.5 - (1 - 2. ** 0.5 * xi) ** 2 / 2)
 rhs_extra_term = 4. / xi * (r ** 2 / m) ** 0.5 + (np.log(np.log2(2 * r / xi)) / m) ** 0.5 + (
         np.log(2 / delta) / 2 / m) ** 0.5
@@ -35,9 +40,6 @@ def task(k, data_k, xi, r_rob, rhs_extra_term):
     print("Finished {}".format(k))
     return return_dict
 
-
-logm0 = LogisticRegression(np.random.rand(2))
-data = generate_synthetic_linear_model_with_uniform_distr_samples(0.0, m, N)
 
 multiprocessing.freeze_support()
 with multiprocessing.Pool(8) as pool:

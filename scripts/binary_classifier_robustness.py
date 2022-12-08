@@ -20,6 +20,11 @@ m = 1000  # each sample size
 N = 1  # number of samples
 xi = [0.001, 0.01, 0.1]  # adversarial power
 
+# Data
+const = True
+data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, m, N, with_const=const)
+logm0 = LogisticRegression(np.random.rand(data[0].get('x').shape[1]), with_const=const)
+
 
 def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
     x = [d.get('x') for d in data]
@@ -30,11 +35,6 @@ def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
         if y_model == y[i]:
             correct_classification += 1
     return correct_classification / m
-
-
-data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, m, N)
-# adversarial training - FGSM
-logm0 = LogisticRegression(np.random.rand(2))
 
 
 def task(k, data_k, logm0, xi, m):

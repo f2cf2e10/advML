@@ -20,20 +20,6 @@ const = True
 a, b, d, data, x, y = generate_synthetic_linear_model_with_uniform_distr_sample(sigma, n, with_const=const)
 logm0 = LogisticRegression(np.random.rand(x.shape[1]), with_const=const)
 
-
-# adversarial training - TRADES
-lamb = 10.
-logm_adv_trades, conv_adv_trades = adversarial_trades(CrossEntropy(), logm0, data, Linf, 1E-5, xi, lamb, int(n / 10))
-plt.figure()
-plt.scatter(x[:, 0], x[:, 1], marker="o", c=y, s=35)
-plt.scatter(x[:, 0], x[:, 1], marker="+", c=[1.0 if logm_adv_trades.value(xi) >= 0.5 else 0.0 for xi in x], s=35)
-plt.title('Adv training - Trades (lambda={:.2f})'.format(lamb))
-plt.show()
-plt.figure()
-plt.plot(conv_adv_trades)
-plt.title('Adv training - Trades (lambda={:.2f}) loss'.format(lamb))
-plt.show()
-
 # training - logistic regression
 logm, conv = gd(CrossEntropy(), logm0, data, 1E-5)
 plt.figure()
@@ -70,6 +56,18 @@ plt.plot(conv_adv_pgd)
 plt.title('Adv training - PGD - loss')
 plt.show()
 
+# adversarial training - TRADES
+lamb = 10.
+logm_adv_trades, conv_adv_trades = adversarial_trades(CrossEntropy(), logm0, data, Linf, 1E-5, xi, lamb, int(n / 10))
+plt.figure()
+plt.scatter(x[:, 0], x[:, 1], marker="o", c=y, s=35)
+plt.scatter(x[:, 0], x[:, 1], marker="+", c=[1.0 if logm_adv_trades.value(xi) >= 0.5 else 0.0 for xi in x], s=35)
+plt.title('Adv training - Trades (lambda={:.2f})'.format(lamb))
+plt.show()
+plt.figure()
+plt.plot(conv_adv_trades)
+plt.title('Adv training - Trades (lambda={:.2f}) loss'.format(lamb))
+plt.show()
 
 # adversarial training - Our model
 w, _ = robust_adv_data_driven_binary_classifier(xi, data)

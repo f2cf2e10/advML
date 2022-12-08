@@ -35,7 +35,7 @@ class Norm(ABC):
 
     @staticmethod
     @abstractmethod
-    def proj(x: np.ndarray, constraint: float) -> np.ndarray:
+    def proj(x: np.ndarray, x0: np.ndarray, constraint: float) -> np.ndarray:
         raise NotImplementedError("Abstract class method")
 
 
@@ -88,6 +88,10 @@ class Loss(ABC):
 
     @abstractmethod
     def dx(self, model: Model, data: Data) -> np.ndarray:
+        raise NotImplementedError("Abstract class method")
+
+    @abstractmethod
+    def dy(self, model: Model, data: Data) -> float:
         raise NotImplementedError("Abstract class method")
 
     def f_batch(self, model: Model, data: List[Data]) -> np.float64:

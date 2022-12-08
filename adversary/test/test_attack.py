@@ -8,7 +8,7 @@ from utils.norm import Linf, L2, L1
 
 def test_fast_gradient_sign_method():
     loss = L2Loss()
-    lm = LinearRegression(np.random.randn(2))
+    lm = LinearRegression(np.random.randn(2), False)
     data = {'x': np.random.randn(2), 'y': 1.0}
     xi = 0.1
     norm = Linf()
@@ -18,7 +18,7 @@ def test_fast_gradient_sign_method():
 
 def test_fast_gradient_dual_norm_method_L2():
     loss = L2Loss()
-    lm = LinearRegression(np.random.randn(2))
+    lm = LinearRegression(np.random.randn(2), False)
     data = {'x': np.random.randn(2), 'y': 1.0}
     xi = 0.1
     norm = L2()
@@ -28,7 +28,7 @@ def test_fast_gradient_dual_norm_method_L2():
 
 def test_projected_gradient_ascent_L2():
     loss = L2Loss()
-    lm = LinearRegression(np.random.randn(2))
+    lm = LinearRegression(np.random.randn(2), False)
     data = {'x': np.random.randn(2), 'y': 1.0}
     xi = 0.1
     proj = L2()
@@ -38,7 +38,7 @@ def test_projected_gradient_ascent_L2():
 
 def test_projected_gradient_ascent_Linf():
     loss = L2Loss()
-    lm = LinearRegression(np.random.randn(2))
+    lm = LinearRegression(np.random.randn(2), False)
     data = {'x': np.random.randn(2), 'y': 1.0}
     xi = 0.1
     proj = Linf()
@@ -48,7 +48,7 @@ def test_projected_gradient_ascent_Linf():
 
 def test_projected_gradient_ascent_L1():
     loss = L2Loss()
-    lm = LinearRegression(np.random.randn(2))
+    lm = LinearRegression(np.random.randn(2), False)
     data = {'x': np.random.randn(2), 'y': 1.0}
     xi = 0.1
     proj = L1()

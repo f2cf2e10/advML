@@ -24,20 +24,30 @@ class L2(Loss):
         x = data.get("x")
         return (model.value(x) - y) * model.dx(x)
 
+    def dy(self, model: Model, data: Data) -> float:
+        y = data.get("y")
+        x = data.get("x")
+        return -(model.value(x) - y)
+
 
 class CrossEntropy(Loss):
 
     def f(self, model: Model, data: Data) -> np.float64:
-        y = (data.get("y") + 1) / 2
+        y = data.get("y")
         x = data.get("x")
-        return np.float64(- (y * np.log(model.value(x)) + (1 - y) * np.log(1 - model.value(x))))
+        return np.float64(np.log(1 + np.exp(-y * model.value(x))))
 
     def dtheta(self, model: Model, data: Data) -> np.ndarray:
-        y = (data.get("y") + 1) / 2
+        y = data.get("y")
         x = data.get("x")
-        return -(y * 1. / model.value(x) * model.dtheta(x) - (1 - y) * 1. / (1 - model.value(x)) * model.dtheta(x))
+        return -y * model.dtheta(x) / (1 + np.exp(y * model.value(x)))
 
     def dx(self, model: Model, data: Data) -> np.ndarray:
-        y = (data.get("y") + 1) / 2
+        y = data.get("y")
         x = data.get("x")
-        return -(y * 1. / model.value(x) * model.dx(x) - (1 - y) * 1. / (1 - model.value(x)) * model.dx(x))
+        return -y * model.dx(x) / (1 + np.exp(y * model.value(x)))
+
+    def dy(self, model: Model, data: Data) -> float:
+        y = data.get("y")
+        x = data.get("x")
+        return -model.value(x) / (1 + np.exp(y * model.value(x)))

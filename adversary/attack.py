@@ -21,5 +21,5 @@ def projected_gradient_ascent(loss: Loss, model: Model, proj: Norm, data: Data, 
     for i in range(k):
         _data = {'x': x, 'y': data.get('y')}
         y = x + alpha * loss.dx(model, _data)
-        x = x0 + proj.proj(y - x0, xi)
+        x = proj.proj(y, x0, xi)
     return {"x": x, "y": data.get("y")}

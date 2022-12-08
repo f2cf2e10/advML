@@ -46,9 +46,9 @@ def adversarial_gd_pgd_attack(loss: Loss, model0: Model, data: List[Data], tol: 
     return model, training_loss
 
 
-def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, tol: float, xi: float, lamb: float,
-                       batch_size: int, eta1: float = 0.05, eta2: float = 0.025, k: int = 100, sigma: float = 0.001) -> \
-        Tuple[Model, List[float]]:
+def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, tol: float, xi: float,
+                       lamb: float, batch_size: int, eta1: float = 0.05, eta2: float = 0.05, K: int = 20,
+                       sigma: float = 0.001) -> Tuple[Model, List[float]]:
     """
     TRADES algorithm from
     Theoretically Principled Trade-off between Robustness and Accuracy, El Gahoui's paper
@@ -77,14 +77,21 @@ def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, 
         batch_prime = []
         for i in range(batch_size):
             x_i = batch[i].get('x')
-            f_x_i = model.value(x_i)
-            xi_prime = x_i + np.random.normal(0, sigma, len(x_i))
-            for k in range(k):
-                xi_prime = x_i + proj.proj(eta1 * np.sign(xi_prime + loss.dx(model, {'x': xi_prime, 'y': f_x_i})) - x_i,
-                                           xi)
-            batch_prime += [{'x': xi_prime, 'y': f_x_i}]
-        theta = model_.get_theta() - eta2 * (
-                loss.dtheta_batch(model, batch) + loss.dtheta_batch(model, batch_prime) / lamb)
+            m = len(x_i) if not model.with_const else len(x_i) - 1
+            x_i_prime = x_i.copy()
+            x_i_prime[0: m] = x_i_prime[0:m] + np.random.normal(0, sigma, m)
+            f_x_i_prime = model.value(x_i_prime)
+            for k in range(K):
+                x_i_prime[0:m] = proj.proj(
+                    eta1 * np.sign(x_i_prime + loss.dy(model, {'x': x_i, 'y': f_x_i_prime}) *
+                                   model.dx(x_i_prime))[0:m], x_i[0:m], xi)
+                f_x_i_prime = model.value(x_i_prime)
+            batch_prime += [{'x': x_i, 'y': f_x_i_prime}]
+        theta = model_.get_theta() - eta2 * (loss.dtheta_batch(model, batch) +
+                                             loss.dtheta_batch(model, batch_prime) / lamb +
+                                             np.average(np.array([loss.dy(model, data_i) *
+                                                                  model.dtheta(data_i.get('x'))
+                                                                  for data_i in batch_prime])) / lamb)
         model.set_theta(theta)
         delta = np.abs(loss.f_batch(model, data) - loss.f_batch(model_, data))
         training_loss += [loss.f_batch(model, data)]
@@ -98,7 +105,7 @@ def _build_constraint_matrix(xi: float, data: List[Data], norm_bound: float = 1.
     def f(s: Data) -> matrix:
         x = s.get('x').tolist()
         y = s.get('y')
-        return matrix([-(y * x_i)/(xi * norm_bound)for x_i in x])
+        return matrix([-(y * x_i) / (xi * norm_bound) for x_i in x])
 
     return matrix([[f(s)] for s in data]).T
 

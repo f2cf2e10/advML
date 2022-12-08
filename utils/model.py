@@ -7,9 +7,10 @@ from utils.types import Model, Norm
 
 class LinearRegression(Model):
 
-    def __init__(self, params: np.ndarray):
+    def __init__(self, params: np.ndarray, with_const: bool):
         self.theta = None
         self.set_theta(params)
+        self.with_const = with_const
 
     def set_theta(self, theta: np.ndarray):
         self.theta = theta
@@ -35,14 +36,15 @@ class LinearRegression(Model):
         return self.theta
 
     def copy(self):
-        other = LinearRegression(self.get_theta().copy())
+        other = LinearRegression(self.get_theta().copy(), self.with_const)
         return other
 
 
 class LinearClassifier(Model):
-    def __init__(self, params: np.ndarray):
+    def __init__(self, params: np.ndarray, with_const: bool):
         self.theta = None
         self.set_theta(params)
+        self.with_const = with_const
 
     def set_theta(self, theta: np.ndarray):
         self.theta = theta
@@ -66,14 +68,15 @@ class LinearClassifier(Model):
         raise NotImplementedError("Linear classifier derivative not implemented")
 
     def copy(self):
-        other = LinearClassifier(self.get_theta().copy())
+        other = LinearClassifier(self.get_theta().copy(), self.with_const)
         return other
 
 
 class LogisticRegression(Model):
-    def __init__(self, params: np.ndarray):
+    def __init__(self, params: np.ndarray, with_const: bool):
         self.theta = None
         self.set_theta(params)
+        self.with_const = with_const
 
     def set_theta(self, theta: np.ndarray):
         self.theta = theta
@@ -100,14 +103,15 @@ class LogisticRegression(Model):
                 1. + np.exp(- self.theta.dot(self.get_x(x)))) ** 2
 
     def copy(self):
-        other = LogisticRegression(self.get_theta().copy())
+        other = LogisticRegression(self.get_theta().copy(), self.with_const)
         return other
 
 
 def SVM(Model):
-    def __init__(self, params: np.ndarray):
+    def __init__(self, params: np.ndarray, with_const: bool):
         self.theta = None
         self.set_theta(params)
+        self.with_const = with_const
 
     def set_theta(self, theta: np.ndarray):
         self.theta = theta
@@ -134,5 +138,5 @@ def SVM(Model):
                 1. + np.exp(- self.theta.dot(self.get_x(x)))) ** 2
 
     def copy(self):
-        other = LogisticRegression(self.get_theta().copy())
+        other = LogisticRegression(self.get_theta().copy(), self.with_const)
         return other

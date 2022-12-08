@@ -11,8 +11,8 @@ def gd(loss: Loss, model0: Model, data: List[Data], tol: float, eta: float = 0.0
     model = model0.copy()
     i = 0
     while delta > tol:
-        theta = proj.proj(model_.get_theta() - eta * loss.dtheta_batch(model, data), constraint) \
-            if proj != None else model_.get_theta() - eta * loss.dtheta_batch(model, data)
+        theta = proj.proj(model_.get_theta() - eta * loss.dtheta_batch(model, data), np.zeros(len(model.get_theta())),
+                          constraint) if proj != None else model_.get_theta() - eta * loss.dtheta_batch(model, data)
         model.set_theta(theta)
         delta = np.abs(loss.f_batch(model, data) - loss.f_batch(model_, data))
         training_loss += [loss.f_batch(model, data)]

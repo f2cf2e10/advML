@@ -22,18 +22,18 @@ class L1(Norm):
         return Linf.norm_dx(x)
 
     @staticmethod
-    def proj(x0: np.ndarray, constraint: float) -> np.ndarray:
-        N = len(x0)
+    def proj(x: np.ndarray, x0: np.ndarray, constraint: float) -> np.ndarray:
+        N = len(x)
         P = matrix([[matrix(np.eye(N)), matrix(np.zeros(N * N).reshape([N, N]))],
                     [matrix(np.zeros(N * N).reshape([N, N])), matrix(np.zeros(N * N).reshape([N, N]))]])
-        q = matrix([matrix(-2 * x0), matrix(np.zeros(N))])
+        q = matrix([matrix(-2 * (x-x0)), matrix(np.zeros(N))])
         G = matrix([[matrix(np.eye(N)), -matrix(np.eye(N))],
                     [-matrix(np.eye(N)), -matrix(np.eye(N))],
                     [matrix(np.zeros(N * N).reshape([N, N])), matrix(-np.eye(N))],
                     [matrix(np.zeros(N)), matrix(np.ones(N))]]).T
         h = matrix([0.0] * 3 * N + [constraint])
         sol = solvers.qp(P, q, G, h)
-        return np.array(sol['x'][0:N].T)[0]
+        return x0 + np.array(sol['x'][0:N].T)[0]
 
 
 class L2(Norm):
@@ -54,8 +54,8 @@ class L2(Norm):
         return L2.norm_dx(x)
 
     @staticmethod
-    def proj(x0: np.ndarray, constraint: float) -> np.ndarray:
-        return x0 / L2.norm(x0) * constraint
+    def proj(x: np.ndarray, x0: np.ndarray, constraint: float) -> np.ndarray:
+        return x0 + (x-x0) / L2.norm(x-x0) * constraint
 
 
 class Linf(Norm):
@@ -76,5 +76,5 @@ class Linf(Norm):
         return L1.norm_dx(x)
 
     @staticmethod
-    def proj(x0: np.ndarray, constraint: float) -> np.ndarray:
-        return np.clip(x0, -constraint, constraint)
+    def proj(x: np.ndarray, x0: np.ndarray, constraint: float) -> np.ndarray:
+        return x0 + np.clip(x-x0, -constraint, constraint)

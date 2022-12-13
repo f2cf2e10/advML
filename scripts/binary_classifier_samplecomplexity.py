@@ -1,7 +1,12 @@
+from collections import ChainMap
+
 import numpy as np
+import pandas as pd
+
 from utils.model import LogisticRegression
 from adversary.solver import robust_adv_data_driven_binary_classifier
-from data.linear_data_generator import generate_synthetic_linear_model_with_uniform_distr_samples
+from data.linear_data_generator import generate_synthetic_linear_model_with_uniform_distr_samples, \
+    generate_synthetic_linear_model_with_cap_normal_distr_samples
 from itertools import repeat
 import multiprocessing
 
@@ -14,8 +19,7 @@ delta = 0.01
 
 # Data
 const = True
-data = generate_synthetic_linear_model_with_uniform_distr_samples(0.0, m, N, with_const=const)
-logm0 = LogisticRegression(np.random.rand(data[0][0].get('x').shape[1]), with_const=const)
+data = generate_synthetic_linear_model_with_cap_normal_distr_samples(0.0, m, N, with_const=const, a=1., b=0.)
 
 r_rob = 0.5 + (0.5 - (1 - 2. ** 0.5 * xi) ** 2 / 2)
 rhs_extra_term = 4. / xi * (r ** 2 / m) ** 0.5 + (np.log(np.log2(2 * r / xi)) / m) ** 0.5 + (
@@ -45,5 +49,8 @@ multiprocessing.freeze_support()
 with multiprocessing.Pool(8) as pool:
     acc = pool.starmap(task, zip(range(len(data)), data, repeat(xi), repeat(r_rob), repeat(rhs_extra_term)))
 
-accuracy_results.describe()
-accuracy_results.hist()
+columns = ["R_hat"]
+sample_complexity = pd.DataFrame.from_dict(dict(ChainMap(*acc)), orient='index', columns=columns)
+
+sample_complexity.describe()
+sample_complexity.hist()

@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import List, Tuple
 from cvxopt import matrix, solvers
 import random
@@ -27,7 +28,7 @@ def adversarial_gd_fast_attack(loss: Loss, model0: Model, data: List[Data], tol:
 
 
 def adversarial_gd_pgd_attack(loss: Loss, model0: Model, data: List[Data], tol: float, xi: float, norm: Norm,
-                              eta1: float = 0.05, eta2: float = 0.025, k: int = 10) -> Tuple[Model, List[float]]:
+                              eta1: float = 0.05, eta2: float = 0.05, k: int = 10) -> Tuple[Model, List[float]]:
     training_loss = []
     delta = np.inf
     model_ = model0.copy()
@@ -47,8 +48,8 @@ def adversarial_gd_pgd_attack(loss: Loss, model0: Model, data: List[Data], tol: 
 
 
 def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, tol: float, xi: float,
-                       lamb: float, batch_size: int, eta1: float = 0.05, eta2: float = 0.05, K: int = 20,
-                       sigma: float = 0.001) -> Tuple[Model, List[float]]:
+                       lamb: float, batch_size: int, eta1: float = 0.025, eta2: float = 0.05, K: int = 20,
+                       sigma: float = 0.001, max_iter: int = 2500) -> Tuple[Model, List[float]]:
     """
     TRADES algorithm from
     Theoretically Principled Trade-off between Robustness and Accuracy, El Gahoui's paper
@@ -72,26 +73,24 @@ def adversarial_trades(loss: Loss, model0: Model, data: List[Data], proj: Norm, 
     model_ = model0.copy()
     model = model0.copy()
     j = 0
-    while delta > tol:
-        batch = random.sample(data, batch_size)
-        batch_prime = []
+    while (delta > tol) & (j < max_iter):
+        batch = np.random.choice(data, batch_size, replace=False)
+        x_prime = []
         for i in range(batch_size):
             x_i = batch[i].get('x')
             m = len(x_i) if not model.with_const else len(x_i) - 1
             x_i_prime = x_i.copy()
             x_i_prime[0: m] = x_i_prime[0:m] + np.random.normal(0, sigma, m)
-            f_x_i_prime = model.value(x_i_prime)
             for k in range(K):
-                x_i_prime[0:m] = proj.proj(
-                    eta1 * np.sign(x_i_prime + loss.dy(model, {'x': x_i, 'y': f_x_i_prime}) *
-                                   model.dx(x_i_prime))[0:m], x_i[0:m], xi)
-                f_x_i_prime = model.value(x_i_prime)
-            batch_prime += [{'x': x_i, 'y': f_x_i_prime}]
-        theta = model_.get_theta() - eta2 * (loss.dtheta_batch(model, batch) +
-                                             loss.dtheta_batch(model, batch_prime) / lamb +
-                                             np.average(np.array([loss.dy(model, data_i) *
-                                                                  model.dtheta(data_i.get('x'))
-                                                                  for data_i in batch_prime])) / lamb)
+                x_i_prime[0:m] = proj.proj(x_i_prime[0:m] +
+                                           eta1 * np.sign(loss.dx(model, {'x': x_i_prime, 'y': model.value(x_i)}))[0:m],
+                                           x_i[0:m], xi)
+            x_prime += [x_i_prime]
+        theta = model_.get_theta() - eta2 * reduce(lambda x, y: x + y, [
+            loss.dtheta(model, batch[j]) +
+            loss.dtheta(model, {'x': batch[j].get('x'), 'y': model.value(x_prime[j])}) / lamb
+            #loss.dtheta(model, {'x': x_prime[j], 'y': model.value(batch[j].get('x'))}) / lamb
+            for j in range(len(batch))]) / len(batch)
         model.set_theta(theta)
         delta = np.abs(loss.f_batch(model, data) - loss.f_batch(model_, data))
         training_loss += [loss.f_batch(model, data)]

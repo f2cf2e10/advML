@@ -37,10 +37,15 @@ def _generate_synthetic_linear_model_sample_with_cap_normal_distr(a: float, b: f
     return data, d, x, y
 
 
-def generate_synthetic_linear_model_with_uniform_distr_samples(noise: float, m: int, N: int, seed: int = 7777,
-                                                               with_const: bool = False) -> List[List[Data]]:
+def generate_synthetic_linear_model_with_uniform_distr_samples(noise: float, m: int, N: int, seed: int = 17171,
+                                                               with_const: bool = False, a: float = None,
+                                                               b: float = None) -> List[List[Data]]:
     # data generation
-    a, b = _initialize(seed, False)
+    arnd, brnd = _initialize(seed, False)
+    if a is None:
+        a = arnd
+    if b is None:
+        b = brnd
     data = []
     for i in range(N):
         data_i, _, _, _ = _generate_synthetic_linear_model_sample_with_uniform_distr(a, b, noise, m, with_const)
@@ -48,17 +53,28 @@ def generate_synthetic_linear_model_with_uniform_distr_samples(noise: float, m: 
     return data
 
 
-def generate_synthetic_linear_model_with_uniform_distr_sample(noise: float, m: int, seed: int = 7777,
-                                                              with_const: bool = False) -> List[Data]:
-    a, b = _initialize(seed, False)
+def generate_synthetic_linear_model_with_uniform_distr_sample(noise: float, m: int, seed: int = 171,
+                                                              with_const: bool = False, a: float = None,
+                                                              b: float = None) -> List[List[Data]]:
+    # data generation
+    arnd, brnd = _initialize(seed, False)
+    if a is None:
+        a = arnd
+    if b is None:
+        b = brnd
     data, d, x, y = _generate_synthetic_linear_model_sample_with_uniform_distr(a, b, noise, m, with_const)
     return a, b, d, data, x, y
 
 
-def generate_synthetic_linear_model_with_cap_normal_distr_samples(noise: float, m: int, N: int, seed: int = 7777,
-                                                                  with_const: bool = False) -> List[List[Data]]:
+def generate_synthetic_linear_model_with_cap_normal_distr_samples(noise: float, m: int, N: int, seed: int = 17171,
+                                                                  with_const: bool = False, a: float = None,
+                                                                  b: float = None) -> List[List[Data]]:
     # data generation
-    a, b = _initialize(seed, False)
+    arnd, brnd = _initialize(seed, False)
+    if a is None:
+        a = arnd
+    if b is None:
+        b = brnd
     data = []
     for i in range(N):
         data_i, _, _, _ = _generate_synthetic_linear_model_sample_with_cap_normal_distr(a, b, noise, m, with_const)
@@ -66,8 +82,14 @@ def generate_synthetic_linear_model_with_cap_normal_distr_samples(noise: float, 
     return data
 
 
-def generate_synthetic_linear_model_with_cap_normal_distr_sample(noise: float, m: int, seed: int = 7777,
-                                                                 with_const: bool = False) -> List[Data]:
-    a, b = _initialize(seed, False)
+def generate_synthetic_linear_model_with_cap_normal_distr_sample(noise: float, m: int, seed: int = 17171,
+                                                                 with_const: bool = False, a: float = None,
+                                                                 b: float = None) -> List[List[Data]]:
+    # data generation
+    arnd, brnd = _initialize(seed, False)
+    if a is None:
+        a = arnd
+    if b is None:
+        b = brnd
     data, d, x, y = _generate_synthetic_linear_model_sample_with_cap_normal_distr(a, b, noise, m, with_const)
     return a, b, d, data, x, y

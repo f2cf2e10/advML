@@ -17,7 +17,7 @@ n = 1000
 # adversarial power
 xi = 0.1
 const = True
-a, b, d, data, x, y = generate_synthetic_linear_model_with_uniform_distr_sample(sigma, n, with_const=const)
+a, b, d, data, x, y = generate_synthetic_linear_model_with_uniform_distr_sample(sigma, n, with_const=const, a=0., b=0.)
 logm0 = LogisticRegression(np.random.rand(x.shape[1]), with_const=const)
 
 # training - logistic regression

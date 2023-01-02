@@ -1,5 +1,3 @@
-import numpy as np
-
 from utils.norm import Linf
 from utils.types import Loss, Data, Model, Norm
 
@@ -18,7 +16,7 @@ def projected_gradient_ascent(loss: Loss, model: Model, proj: Norm, data: Data, 
                               k: int) -> Data:
     x0 = model.get_x(data.get("x").copy())
     x = x0.copy()
-    for i in range(k):
+    for k_i in range(k):
         _data = {'x': x, 'y': data.get('y')}
         y = x + alpha * loss.dx(model, _data)
         x = proj.proj(y, x0, xi)

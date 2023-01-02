@@ -16,7 +16,7 @@ m = 1000  # each sample size
 N = 1000  # number of samples
 xi = 0.1  # adversarial power
 r = 1  # norm_inf{x} <= 1
-delta = 0.01
+delta = 0.1
 distr = 'normal'
 
 rhs_extra_term = 4. / xi * (r ** 2 / m) ** 0.5 + (np.log(np.log2(2 * r / xi)) / m) ** 0.5 + (
@@ -29,8 +29,9 @@ if distr == 'uniform':
     r_rob = xi
 else:
     std = 0.1
-    data = generate_synthetic_linear_model_with_cap_normal_distr_samples(0.0, m, N, with_const=const, a=0., b=0., std=std)
-    r_rob = 2 * special.erf(xi/std)
+    data = generate_synthetic_linear_model_with_cap_normal_distr_samples(0.0, m, N, with_const=const, a=0., b=0.,
+                                                                         std=std)
+    r_rob = 2 * special.erf(xi / std)
 
 
 def task(k, data_k, xi):
@@ -39,6 +40,7 @@ def task(k, data_k, xi):
     return_dict = {k: r_hat}
     print("Finished {}".format(k))
     return return_dict
+
 
 multiprocessing.freeze_support()
 with multiprocessing.Pool(8) as pool:

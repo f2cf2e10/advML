@@ -2,6 +2,7 @@ import random
 from abc import ABC, abstractmethod
 from functools import reduce
 from typing import List, TypeVar
+
 from typing_extensions import TypedDict
 
 import numpy as np
@@ -99,7 +100,7 @@ class Loss(ABC):
 
     def f_mini_batch(self, model: Model, data: List[Data], batch_size: int) -> np.float64:
         return np.float64(reduce(lambda x, y: x + y,
-                      [self.f(model, data_i) for data_i in random.sample(data, batch_size)]) / batch_size)
+                                 [self.f(model, data_i) for data_i in random.sample(data, batch_size)]) / batch_size)
 
     def f_stochastic(self, model: Model, data: List[Data]) -> np.float64:
         return self.f(model, random.sample(data, 1)[0])

@@ -1,7 +1,6 @@
 from functools import reduce
 from typing import List, Tuple
 from cvxopt import matrix, solvers
-import random
 import numpy as np
 from adversary.attack import fast_gradient_dual_norm_method, projected_gradient_ascent
 from utils.types import Model, Loss, Data, Norm
@@ -25,6 +24,7 @@ def adversarial_gd_fast_attack(loss: Loss, model0: Model, data: List[Data], tol:
         i += 1
     print(i, delta)
     return model, training_loss
+
 
 
 def adversarial_gd_pgd_attack(loss: Loss, model0: Model, data: List[Data], tol: float, xi: float, norm: Norm,

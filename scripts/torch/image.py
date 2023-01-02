@@ -63,7 +63,7 @@ def epoch(loader, model, opt=None):
 
         total_err += (yp.max(dim=1)[1] != y).sum().item()
         total_loss += loss.item() * X.shape[0]
-    return total_err / len(loader.dataset), total_loss / len(loader.dataset)
+    return total_err / len(loader.train_set), total_loss / len(loader.train_set)
 
 
 def epoch_adversarial(loader, model, attack, opt=None, **kwargs):
@@ -81,7 +81,7 @@ def epoch_adversarial(loader, model, attack, opt=None, **kwargs):
 
         total_err += (yp.max(dim=1)[1] != y).sum().item()
         total_loss += loss.item() * X.shape[0]
-    return total_err / len(loader.dataset), total_loss / len(loader.dataset)
+    return total_err / len(loader.train_set), total_loss / len(loader.train_set)
 
 opt = optim.SGD(model_cnn.parameters(), lr=1e-1)
 for t in range(10):

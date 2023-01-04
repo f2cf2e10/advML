@@ -1,7 +1,7 @@
 import torch
 
 
-class Ours(torch.nn.Module):
+class Ours(torch.nn.Linear):
     __constants__ = ['const']
     const: bool
     w: torch.Tensor
@@ -21,5 +21,9 @@ class Ours(torch.nn.Module):
         a Tensor of output data. We can use Modules defined in the constructor as
         well as arbitrary operators on Tensors.
         """
-        x = torch.hstack((torch.Tensor(x), torch.ones((len(x), 1)))) if self.const else x
-        return torch.sign(torch.matmul(x, self.w))
+        if x.ndim == 2:
+            x = torch.hstack((torch.Tensor(x), torch.ones((len(x), 1)))) if self.const else x
+            return (torch.sign(torch.matmul(x, self.w)) + 1) / 2
+        else:
+            x = torch.hstack((torch.Tensor(x), torch.ones(1))) if self.const else x
+            return (torch.sign(torch.matmul(x, self.w)) + 1) / 2

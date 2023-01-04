@@ -27,7 +27,10 @@ tol = 1E-5
 xi = 0.1
 
 loss_fn = nn.BCEWithLogitsLoss()
-adv_loss_fn = nn.BCEWithLogitsLoss(size_average=False)
+adv_loss_fn = nn.BCEWithLogitsLoss(reduction='sum')
+
+
+
 
 model = nn.Linear(28 * 28, 1)
 print("Model\tTrain Err\tTrain Loss\tTest Err\tTest Loss\tFGSM Test Err\tFGSM Test Loss\tPGD Test Err\t" +
@@ -116,8 +119,7 @@ while delta > tol:
     previous_train_loss = train_loss
 print()
 
-
-our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data.dataset, xi=xi)
+our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
 train_err, train_loss = training(train_data, our_model, loss_fn)
 test_err, test_loss = training(test_data, our_model, loss_fn)
 adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(

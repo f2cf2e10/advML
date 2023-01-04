@@ -25,7 +25,7 @@ def scatter_plot(model, title, data_x, data_y):
 # model
 sigma = 0.1
 tol = 1E-6
-n = 1200
+n = 1500
 # adversarial power
 xi = 0.1
 a, b, d, data, x, y = generate_synthetic_linear_model_with_uniform_distr_sample(0.0, n, 0.75, 0.1)
@@ -131,7 +131,7 @@ print()
 scatter_plot(model_robust_trades, 'TRADES - train', train_x, train_y)
 scatter_plot(model_robust_trades, 'TRADES - test', test_x, test_y)
 
-our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data.dataset, xi=xi)
+our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
 train_err, train_loss = training(train_data, our_model, loss_fn)
 test_err, test_loss = training(test_data, our_model, loss_fn)
 adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(

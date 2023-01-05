@@ -5,7 +5,6 @@ from utils.types import Data
 
 def _generate_synthetic_linear_model_sample_with_uniform_distr(a: float, b: float, noise: float, m: int) -> List[Data]:
     # data generation
-    np.random.seed(1771)
     lm = lambda x: np.float64(1.0) if x[1] > a * x[0] + b + noise * np.random.randn() else np.float64(-1.)
     x = (2 * np.random.rand(2 * m) - 1).reshape([m, 2])
     y = [lm(x_i) for x_i in x]

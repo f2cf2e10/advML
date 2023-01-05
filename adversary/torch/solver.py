@@ -62,14 +62,13 @@ def adversarial_training_trades(data: DataLoader, model: Module, loss_fn: Module
         x, y = x_i.to(device), y_i.to(device)
         x_0 = nn.Flatten()(x) if x.ndim > 1 else x
         y_x_0 = Variable(((model(x_0)[:, 0]).sign() + 1) / 2)
-        delta = Variable(sigma * torch.randn_like(x_0), requires_grad=True)
-        adv_optimizer = optim.SGD([delta], lr=1e-1)
+        x_adv = Variable(x_0 + sigma * torch.randn_like(x_0), requires_grad=True)
+        adv_optimizer = optim.SGD([x_adv], lr=1e-1)
         for k_i in range(k):
-            x_adv = proj.proj(x_0 + delta, x_0, xi)
             adv_optimizer.zero_grad()
             loss = adv_loss_fn(model(x_adv)[:, 0], y_x_0)
             loss.backward()
-            delta = Variable(eta1 * torch.sign(delta.grad.detach()), requires_grad=True)
+            x_adv = Variable(proj.proj(x_adv + eta1 * torch.sign(x_adv.grad.detach()), x_0, xi), requires_grad=True)
         y_hat = model(x_0)[:, 0]
         y_hat_adv = Variable(((model(x_adv)[:, 0]).sign() + 1) / 2)
         loss = loss_fn(y_hat, y.float()) + loss_fn(y_hat, y_hat_adv) / lamb / n

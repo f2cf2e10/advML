@@ -1,4 +1,6 @@
+import multiprocessing
 import time
+from itertools import repeat
 
 import numpy as np
 import torch
@@ -10,7 +12,8 @@ from adversary.torch.solver import adversarial_training_fast_gradient_sign_metho
     adversarial_training_projected_gradient_descent, adversarial_training_trades, \
     robust_adv_data_driven_binary_classifier
 from data.linear_data_generator import generate_synthetic_linear_model_with_uniform_distr_sample, \
-    generate_synthetic_linear_model_with_cap_normal_distr_sample
+    generate_synthetic_linear_model_with_cap_normal_distr_sample, \
+    generate_synthetic_linear_model_with_uniform_distr_samples
 from utils.torch.solver import training
 
 
@@ -29,7 +32,7 @@ sigma = 0.1
 tol = 1E-5
 n_train = 1000
 n_test = 500
-n_paths = 100
+n_paths = 1000
 n = n_train + n_test
 # adversarial power
 xi = 0.1
@@ -37,10 +40,14 @@ np.random.seed(1771)
 torch.manual_seed(7777)
 accuracy = []
 
-for i in range(1, n_paths + 1):
+data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, n, n_paths, 0.75, 0.1)
+
+
+def task(k, data_k, n_paths, n_train, n_test, xi):
+    x = np.array([d.get('x') for d in data_k])
+    y = np.array([d.get('y') for d in data_k])
+    d = len(x[0])
     t0 = time.time()
-    a, b, d, data, x, y = generate_synthetic_linear_model_with_uniform_distr_sample(0.0, n, 0.75, 0.1)
-    print("{}/{} - ".format(i, n_paths), end="")
     accuracy_i = []
 
     train_x = torch.Tensor(x[0: n_train])
@@ -102,6 +109,9 @@ for i in range(1, n_paths + 1):
     our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
     test_err, test_loss = training(test_data, our_model, loss_fn)
     accuracy_i += [1 - test_err]
+    print("{}/{} - {}".format(k, n_paths), time.time() - t0)
+    return accuracy_i
 
-    accuracy += [accuracy_i]
-    print(time.time() - t0)
+multiprocessing.freeze_support()
+with multiprocessing.Pool(8) as pool:
+    acc = pool.starmap(task, zip(range(len(data)), data, repeat(n_paths), repeat(n_train), repeat(n_test), repeat(xi)))

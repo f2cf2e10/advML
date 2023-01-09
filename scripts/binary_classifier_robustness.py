@@ -17,7 +17,7 @@ from utils.types import Data
 # Parameters
 sigma = 0.1  # noise
 m = 1000  # each sample size
-N = 6  # number of samples
+N = 600  # number of samples
 xi = [0.001, 0.01, 0.1]  # adversarial power
 
 # Data
@@ -49,7 +49,7 @@ def task(k, data_k, logm0, xi, m):
            calculate_accuracy(data_k, lambda x: 1.0 if logm_adv_pgd.value(x) >= 0.5 else 0.0),
            calculate_accuracy(data_k, lambda x: 1.0 if logm_adv_trades.value(x) >= 0.5 else 0.0),
            calculate_accuracy(data_k, lambda x: 1.0 if x.dot(w) >= 0.0 else 0.0)]
-    return_dict = {k: {acc: ret, xi: xi}}
+    return_dict = {k: ret, 'xi': xi}
     print("Finished {}".format(k))
     return return_dict
 
@@ -60,10 +60,9 @@ with multiprocessing.Pool(8) as pool:
     acc = pool.starmap(task, zip(range(len(data)), data, repeat(logm0), cycle(xi), repeat(m)))
 
 time.time() - t0
-
-columns = [a + str(b) for b in xi for a in
-           ["Adv training - FGSM - xi=", "Adv training - PGD - xi=", "TRADES - xi=", "Our model - xi="]]
-robustness_results = pd.DataFrame.from_dict(dict(ChainMap(*acc)), orient='index', columns=columns)
+columns = ["Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"]
+robustness_results = {xi_i : pd.DataFrame([list(a.values())[0] for a in acc if a.get('xi')==xi_i], 
+columns=columns) for xi_i in xi}
 
 robustness_results.describe()
 robustness_results.hist()

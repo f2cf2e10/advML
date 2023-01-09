@@ -17,13 +17,13 @@ from collections import ChainMap
 # Parameters
 sigma = 0.1  # noise
 m = 1000  # each sample size
-N = 8  # number of samples
+N = 500 # number of samples
 xi = 0.1  # adversarial power
 
 # Data
 const = True
 data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, m, N, with_const=const)
-logm0 = LogisticRegression(np.random.rand(data[0][0].get('x').shape[1]), with_const=const)
+logm0 = LogisticRegression(np.random.rand(data[0][0].get('x').shape[0]), with_const=const)
 
 
 def calculate_accuracy(data: Data, model: Callable[[np.ndarray], float]):
@@ -63,6 +63,6 @@ time.time() - t0
 
 columns = ["Logistic regression", "Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"]
 accuracy_results = pd.DataFrame.from_dict(dict(ChainMap(*acc)), orient='index', columns=columns)
-
+accuracy_results.to_csv('./accuracy_500_paths.csv')
 accuracy_results.describe()
 accuracy_results.hist()

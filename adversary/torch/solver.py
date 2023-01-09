@@ -71,7 +71,7 @@ def adversarial_training_trades(data: DataLoader, model: Module, loss_fn: Module
             x_adv = Variable(proj.proj(x_adv + eta1 * torch.sign(x_adv.grad.detach()), x_0, xi), requires_grad=True)
         y_hat = model(x_0)[:, 0]
         y_hat_adv = Variable(((model(x_adv)[:, 0]).sign() + 1) / 2)
-        loss = loss_fn(y_hat, y.float()) + loss_fn(y_hat, y_hat_adv) / lamb / n
+        loss = loss_fn(y_hat, y.float()) + loss_fn(y_hat, y_hat_adv) / lamb
         if opt:
             optimizer = optim.SGD(model.parameters(), lr=1e-1)
             optimizer.zero_grad()

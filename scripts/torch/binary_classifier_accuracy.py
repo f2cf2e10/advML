@@ -106,7 +106,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
         previous_train_loss = train_loss
     accuracy_i += [1 - test_err]
 
-    our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
+    our_model, adv_our_loss, adv_our_err = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
     test_err, test_loss = training(test_data, our_model, loss_fn)
     accuracy_i += [1 - test_err]
     print("{}/{} - {}".format(k, n_paths), time.time() - t0)

@@ -127,4 +127,4 @@ def robust_adv_data_driven_binary_classifier(data: DataLoader, xi: float = 0.2, 
         y = y_i
         y_hat = model(x).T[0]
         total_err += (((y_hat > 0) * (y == 0) + (y_hat < 0) * (y == 1)) * 1.0).sum().item()
-    return model, loss, total_err / m
+    return model, total_err / m, loss

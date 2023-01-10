@@ -80,7 +80,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
     previous_train_loss = np.Inf
     while delta > tol:
         train_err, train_loss = adversarial_training_fast_gradient_sign_method(
-            test_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi)
+            train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi)
         test_err, test_loss = training(test_data, model_robust_fgsm, loss_fn)
         delta = previous_train_loss - train_loss
         previous_train_loss = train_loss
@@ -91,7 +91,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
     previous_train_loss = np.Inf
     while delta > tol:
         train_err, train_loss = adversarial_training_projected_gradient_descent(
-            test_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi)
+            train_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi)
         test_err, test_loss = training(test_data, model_robust_pgd, loss_fn)
         delta = previous_train_loss - train_loss
         previous_train_loss = train_loss
@@ -102,7 +102,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
     previous_train_loss = np.Inf
     while delta > tol:
         train_err, train_loss = adversarial_training_trades(
-            test_data, model_robust_trades, loss_fn, adv_loss_fn, True, xi=xi)
+            train_data, model_robust_trades, loss_fn, adv_loss_fn, True, xi=xi)
         test_err, test_loss = training(test_data, model_robust_trades, loss_fn)
         delta = previous_train_loss - train_loss
         previous_train_loss = train_loss

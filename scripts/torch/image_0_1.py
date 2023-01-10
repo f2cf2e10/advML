@@ -33,8 +33,8 @@ adv_loss_fn = nn.BCEWithLogitsLoss(reduction='sum')
 
 
 model = nn.Linear(28 * 28, 1)
-print("Model\tTrain Err\tTrain Loss\tTest Err\tTest Loss\tFGSM Test Err\tFGSM Test Loss\tPGD Test Err\t" +
-      "PGD Test Loss\tTRADES Test Err\tTRADES Test Loss")
+print("Method\tTrain Acc\tTrain Loss\tPlain Test Acc\tPlain Test Loss\tFGSM Test Acc\tFGSM Test Loss\tPGD Test Acc\t" +
+      "PGD Test Loss\tTRADES Test Acc\tTRADES Test Loss")
 delta = np.Inf
 previous_train_loss = np.Inf
 while delta > tol:
@@ -46,9 +46,9 @@ while delta > tol:
         test_data, model, loss_fn, adv_loss_fn, xi=xi)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
         test_data, model, loss_fn, adv_loss_fn, xi=xi)
-    print("Normal\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}".format(
-        train_err, train_loss, test_err, test_loss, adv_sign_err, adv_sign_loss, adv_pgd_err, adv_pgd_loss,
-        adv_trades_err, adv_trades_loss), end='\r')
+    print("Plain\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
+        (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
+        (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
 print()
@@ -68,9 +68,9 @@ while delta > tol:
         test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
         test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi)
-    print("FGSM\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}".format(
-        train_err, train_loss, test_err, test_loss, adv_sign_err, adv_sign_loss, adv_pgd_err, adv_pgd_loss,
-        adv_trades_err, adv_trades_loss), end='\r')
+    print("FGSM\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
+        (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
+        (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
 print()
@@ -90,9 +90,9 @@ while delta > tol:
         test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
         test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi)
-    print("PGD\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}".format(
-        train_err, train_loss, test_err, test_loss, adv_sign_err, adv_sign_loss, adv_pgd_err, adv_pgd_loss,
-        adv_trades_err, adv_trades_loss), end='\r')
+    print("PGD\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
+        (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
+        (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
 print()
@@ -112,9 +112,9 @@ while delta > tol:
         test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
         test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi)
-    print("TRADES\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.6f}".format(
-        train_err, train_loss, test_err, test_loss, adv_sign_err, adv_sign_loss, adv_pgd_err, adv_pgd_loss,
-        adv_trades_err, adv_trades_loss), end='\r')
+    print("TRADES\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
+        (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
+        (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
 print()
@@ -128,6 +128,6 @@ adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
     test_data, our_model, loss_fn, adv_loss_fn, xi=xi)
 adv_trades_err, adv_trades_loss = adversarial_training_trades(
     test_data, our_model, loss_fn, adv_loss_fn, xi=xi)
-print("OURS\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
-    train_err, train_loss, test_err, test_loss, adv_sign_err, adv_sign_loss, adv_pgd_err, adv_pgd_loss,
-    adv_trades_err, adv_trades_loss), end='\r')
+print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
+    (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
+    (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')

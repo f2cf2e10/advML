@@ -37,7 +37,7 @@ n_test = 500
 n_paths = 1000
 n = n_train + n_test
 # adversarial power
-xi = 0.3
+xis = [0.1, 0.2, 0.3]
 np.random.seed(1771)
 torch.manual_seed(7777)
 accuracy = []
@@ -115,11 +115,10 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
     return accuracy_i
 
 multiprocessing.freeze_support()
-with multiprocessing.Pool(8) as pool:
-    acc = pool.starmap(task, zip(range(len(data)), data, repeat(n_paths), repeat(n_train), repeat(n_test), repeat(xi)))
+for xi in xis:
+    with multiprocessing.Pool(8) as pool:
+        acc = pool.starmap(task, zip(range(len(data)), data, repeat(n_paths), repeat(n_train), repeat(n_test), repeat(xi)))
 
-columns = ["Training", "Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"]
-accuracy_results = pd.DataFrame(acc, columns=columns)
-accuracy_results.to_csv('./accuracy_torch_1000_paths_xi_' + str(xi) + '.csv')
-accuracy_results.describe()
-accuracy_results.hist()
+    columns = ["Training", "Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"]
+    accuracy_results = pd.DataFrame(acc, columns=columns)
+    accuracy_results.to_csv('./accuracy_torch_1000_paths_xi_' + str(xi) + '.csv')

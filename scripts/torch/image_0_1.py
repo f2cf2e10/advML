@@ -27,7 +27,7 @@ tol = 1E-5
 xi = 0.1
 
 loss_fn = nn.BCEWithLogitsLoss()
-adv_loss_fn = nn.BCEWithLogitsLoss(reduction='sum')
+adv_loss_fn = nn.BCEWithLogitsLoss()
 
 
 

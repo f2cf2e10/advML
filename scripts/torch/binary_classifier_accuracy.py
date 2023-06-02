@@ -36,6 +36,7 @@ n_train = 1000
 n_test = 500
 n_paths = 1000
 n = n_train + n_test
+norm_bound = 1.0
 # adversarial power
 xis = [0.1, 0.2, 0.3]
 np.random.seed(1771)
@@ -45,7 +46,7 @@ accuracy = []
 data = generate_synthetic_linear_model_with_uniform_distr_samples(sigma, n, n_paths, 0.75, 0.1)
 
 
-def task(k, data_k, n_paths, n_train, n_test, xi):
+def task(k, data_k, n_paths, n_train, n_test, xi, norm_bound):
     x = np.array([d.get('x') for d in data_k])
     y = np.array([d.get('y') for d in data_k])
     d = len(x[0])
@@ -80,7 +81,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
     previous_train_loss = np.Inf
     while delta > tol:
         train_err, train_loss = adversarial_training_fast_gradient_sign_method(
-            train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi)
+            train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
         test_err, test_loss = training(test_data, model_robust_fgsm, loss_fn)
         delta = previous_train_loss - train_loss
         previous_train_loss = train_loss
@@ -91,7 +92,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
     previous_train_loss = np.Inf
     while delta > tol:
         train_err, train_loss = adversarial_training_projected_gradient_descent(
-            train_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi)
+            train_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
         test_err, test_loss = training(test_data, model_robust_pgd, loss_fn)
         delta = previous_train_loss - train_loss
         previous_train_loss = train_loss
@@ -108,7 +109,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
         previous_train_loss = train_loss
     accuracy_i += [1 - test_err]
 
-    our_model, adv_our_loss, adv_our_err = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
+    our_model, adv_our_loss, adv_our_err = robust_adv_data_driven_binary_classifier(train_data, xi=xi, norm_bound=norm_bound)
     test_err, test_loss = training(test_data, our_model, loss_fn)
     accuracy_i += [1 - test_err]
     print("{}/{} - {}".format(k, n_paths, time.time() - t0))
@@ -117,7 +118,7 @@ def task(k, data_k, n_paths, n_train, n_test, xi):
 multiprocessing.freeze_support()
 for xi in xis:
     with multiprocessing.Pool(8) as pool:
-        acc = pool.starmap(task, zip(range(len(data)), data, repeat(n_paths), repeat(n_train), repeat(n_test), repeat(xi)))
+        acc = pool.starmap(task, zip(range(len(data)), data, repeat(n_paths), repeat(n_train), repeat(n_test), repeat(xi), repeat(norm_bound)))
 
     columns = ["Training", "Adv training - FGSM", "Adv training - PGD", "TRADES", "Our model"]
     accuracy_results = pd.DataFrame(acc, columns=columns)

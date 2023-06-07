@@ -8,22 +8,18 @@ from adversary.torch.solver import adversarial_training_fast_gradient_sign_metho
     robust_adv_data_driven_binary_classifier
 from utils.torch.solver import training
 
-# Using only HORSES AND DEAR
-cifar10_train = datasets.CIFAR10("../data", train=True, download=True)
-cifar10_train.targets = torch.Tensor(cifar10_train.targets)
-cifar10_train.data = torch.Tensor(cifar10_train.data)
-cat_dog = torch.logical_or(cifar10_train.targets == 3, cifar10_train.targets == 5)
+# Using only cat(3) and doct(5)
+cifar10_train = datasets.CIFAR10("../data", train=True, download=True, transform=transforms.ToTensor())
+cat_dog = [(x == 3 or x == 5) for x in cifar10_train.targets]
 cifar10_train.data = cifar10_train.data[cat_dog] / 255.  # normalizing
-cifar10_train.targets = cifar10_train.targets[cat_dog]
-cifar10_train.targets[cifar10_train.targets == 3] = 0.0  # cat
-cifar10_train.targets[cifar10_train.targets == 5] = 1.0  # dog
+cifar10_train.targets = list(np.array(cifar10_train.targets)[cat_dog])
+cifar10_train.targets = [0. if x == 3 else 1.0 for x in cifar10_train.targets]
 
-cifar10_test = datasets.CIFAR10("../data", train=False, download=True)
-cifar10_test.targets = torch.Tensor(cifar10_test.targets)
-cifar10_test.data = torch.Tensor(cifar10_test.data)
-cat_dog = torch.logical_or(cifar10_test.targets == 3, cifar10_test.targets == 5)
+cifar10_test = datasets.CIFAR10("../data", train=False, download=True, transform=transforms.ToTensor())
+cat_dog = [(x == 3 or x == 5) for x in cifar10_test.targets]
 cifar10_test.data = cifar10_test.data[cat_dog] / 255.  # normalizing
-cifar10_test.targets = cifar10_test.targets[cat_dog] * 1.0
+cifar10_test.targets = list(np.array(cifar10_test.targets)[cat_dog])
+cifar10_test.targets = [0. if x == 3 else 1.0 for x in cifar10_test.targets]
 
 train_data = DataLoader(cifar10_train, batch_size=100, shuffle=True)
 test_data = DataLoader(cifar10_test, batch_size=100, shuffle=False)

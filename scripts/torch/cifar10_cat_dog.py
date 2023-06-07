@@ -11,16 +11,16 @@ from utils.torch.solver import training
 
 # Using only HORSES AND DEAR
 cifar10_train = datasets.CIFAR10("../data", train=True, download=True, transform=transforms.ToTensor())
-cat_dot = torch.logical_or(cifar10_train.targets == 3, cifar10_train.targets == 5)
-cifar10_train.data = cifar10_train.data[cat_dot]
-cifar10_train.targets = cifar10_train.targets[cat_dot]
+cat_dog = torch.logical_or(cifar10_train.targets == 3, cifar10_train.targets == 5)
+cifar10_train.data = cifar10_train.data[cat_dog]/255. #normalizing
+cifar10_train.targets = cifar10_train.targets[cat_dog]
 cifar10_train.targets[cifar10_train.targets == 3] = 0.0 #cat
 cifar10_train.targets[cifar10_train.targets == 5] = 1.0 #dog
 
-cifar10_test = datasets.MNIST("../data", train=False, download=True, transform=transforms.ToTensor())
-zeros_ones = cifar10_test.targets <= 1
-cifar10_test.data = cifar10_test.data[zeros_ones]
-cifar10_test.targets = cifar10_test.targets[zeros_ones] * 1.0
+cifar10_test = datasets.CIFAR10("../data", train=False, download=True, transform=transforms.ToTensor())
+cat_dog = torch.logical_or(cifar10_test.targets == 3, cifar10_test.targets == 5)
+cifar10_test.data = cifar10_test.data[cat_dog]/255. #normalizing
+cifar10_test.targets = cifar10_test.targets[cat_dog] * 1.0
 
 train_data = DataLoader(cifar10_train, batch_size=100, shuffle=True)
 test_data = DataLoader(cifar10_test, batch_size=100, shuffle=False)

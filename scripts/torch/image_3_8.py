@@ -11,14 +11,14 @@ from utils.torch.solver import training
 # Using only 0s and 1s
 mnist_train = datasets.MNIST("../data", train=True, download=True, transform=transforms.ToTensor())
 three_eight = torch.logical_or(mnist_train.targets == 3, mnist_train.targets == 8)
-mnist_train.data = mnist_train.data[three_eight]
+mnist_train.data = mnist_train.data[three_eight]/255.
 mnist_train.targets = mnist_train.targets[three_eight]
 mnist_train.targets[mnist_train.targets == 3] = 0.0
 mnist_train.targets[mnist_train.targets == 8] = 1.0
 
 mnist_test = datasets.MNIST("../data", train=False, download=True, transform=transforms.ToTensor())
 three_eight = torch.logical_or(mnist_test.targets == 3, mnist_test.targets == 8)
-mnist_test.data = mnist_test.data[three_eight]
+mnist_test.data = mnist_test.data[three_eight]/255.
 mnist_test.targets = mnist_test.targets[three_eight]
 mnist_test.targets[mnist_test.targets == 3] = 0.0
 mnist_test.targets[mnist_test.targets == 8] = 1.0
@@ -28,7 +28,8 @@ test_data = DataLoader(mnist_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-6
-xi = 0.1
+xi = 0.01
+norm_bound = 1.0
 
 loss_fn = nn.BCEWithLogitsLoss()
 adv_loss_fn = nn.BCEWithLogitsLoss()
@@ -42,11 +43,11 @@ while delta > tol:
     train_err, train_loss = training(train_data, model, loss_fn, True)
     test_err, test_loss = training(test_data, model, loss_fn)
     adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
-        test_data, model, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
-        test_data, model, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     print("Plain\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -60,15 +61,15 @@ delta = np.Inf
 previous_train_loss = np.Inf
 while delta > tol:
     train_err, train_loss = adversarial_training_fast_gradient_sign_method(
-        train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi)
+        train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
     test_err, test_loss = adversarial_training_fast_gradient_sign_method(
-        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
-        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
-        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     print("FGSM\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -82,15 +83,15 @@ delta = np.Inf
 previous_train_loss = np.Inf
 while delta > tol:
     train_err, train_loss = adversarial_training_projected_gradient_descent(
-        train_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi)
+        train_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
     test_err, test_loss = adversarial_training_projected_gradient_descent(
-        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
-        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
-        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     print("PGD\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -106,13 +107,13 @@ while delta > tol:
     train_err, train_loss = adversarial_training_trades(
         train_data, model_robust_trades, loss_fn, adv_loss_fn, True, xi=xi)
     test_err, test_loss = adversarial_training_trades(
-        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
-        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
-        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi)
+        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     print("TRADES\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -124,11 +125,11 @@ our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(
 train_err, train_loss = training(train_data, our_model, loss_fn)
 test_err, test_loss = training(test_data, our_model, loss_fn)
 adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
-    test_data, our_model, loss_fn, adv_loss_fn, xi=xi)
+    test_data, our_model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
 adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
-    test_data, our_model, loss_fn, adv_loss_fn, xi=xi)
+    test_data, our_model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
 adv_trades_err, adv_trades_loss = adversarial_training_trades(
-    test_data, our_model, loss_fn, adv_loss_fn, xi=xi)
+    test_data, our_model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
 print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')

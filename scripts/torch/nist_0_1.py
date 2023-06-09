@@ -19,23 +19,24 @@ zeros_ones = mnist_test.targets <= 1
 mnist_test.data = mnist_test.data[zeros_ones]/255. #normalizing
 mnist_test.targets = mnist_test.targets[zeros_ones] * 1.0
 
-train_data = DataLoader(mnist_train, batch_size=100, shuffle=True)
+train_data = DataLoader(mnist_train, batch_size=100, shuffle=False)
 test_data = DataLoader(mnist_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-5
 xi = 0.01
 norm_bound = 1.0
-
+maxIter = 10
+N = 28 * 28
 loss_fn = nn.BCEWithLogitsLoss()
 adv_loss_fn = nn.BCEWithLogitsLoss()
+model = nn.Linear(N, 1)
 
-model = nn.Linear(28 * 28, 1)
 print("Method\tTrain Acc\tTrain Loss\tPlain Test Acc\tPlain Test Loss\tFGSM Test Acc\tFGSM Test Loss\tPGD Test Acc\t" +
       "PGD Test Loss\tTRADES Test Acc\tTRADES Test Loss")
 delta = np.Inf
 previous_train_loss = np.Inf
-while delta > tol:
+for _ in range(maxIter):
     train_err, train_loss = training(train_data, model, loss_fn, True)
     test_err, test_loss = training(test_data, model, loss_fn)
     adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
@@ -49,13 +50,15 @@ while delta > tol:
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
+    if np.abs(delta) <= tol:
+        break
 print()
 
-model_robust_fgsm = nn.Linear(784, 1)
+model_robust_fgsm = nn.Linear(N, 1)
 loss_fn = nn.BCEWithLogitsLoss()
 delta = np.Inf
 previous_train_loss = np.Inf
-while delta > tol:
+for _ in range(maxIter):
     train_err, train_loss = adversarial_training_fast_gradient_sign_method(
         train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
     test_err, test_loss = adversarial_training_fast_gradient_sign_method(
@@ -71,13 +74,15 @@ while delta > tol:
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
+    if np.abs(delta) <= tol:
+        break
 print()
 
-model_robust_pgd = nn.Linear(784, 1)
+model_robust_pgd = nn.Linear(N, 1)
 loss_fn = nn.BCEWithLogitsLoss()
 delta = np.Inf
 previous_train_loss = np.Inf
-while delta > tol:
+for _ in range(maxIter):
     train_err, train_loss = adversarial_training_projected_gradient_descent(
         train_data, model_robust_pgd, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
     test_err, test_loss = adversarial_training_projected_gradient_descent(
@@ -93,13 +98,15 @@ while delta > tol:
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
+    if np.abs(delta) <= tol:
+        break
 print()
 
-model_robust_trades = nn.Linear(784, 1)
+model_robust_trades = nn.Linear(N, 1)
 loss_fn = nn.BCEWithLogitsLoss()
 delta = np.Inf
 previous_train_loss = np.Inf
-while delta > tol:
+for _ in range(maxIter):
     train_err, train_loss = adversarial_training_trades(
         train_data, model_robust_trades, loss_fn, adv_loss_fn, True, xi=xi)
     test_err, test_loss = adversarial_training_trades(
@@ -115,6 +122,8 @@ while delta > tol:
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
+    if np.abs(delta) <= tol:
+        break
 print()
 
 our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)

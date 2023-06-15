@@ -10,21 +10,15 @@ from utils.torch.solver import training
 
 # Using only 0s and 1s
 mnist_train = datasets.MNIST("../data", train=True, download=True, transform=transforms.ToTensor())
-three_eight = torch.logical_or(mnist_train.targets == 3, mnist_train.targets == 8)
-mnist_train.data = mnist_train.data[three_eight]/255.
-mnist_train.targets = mnist_train.targets[three_eight]
-mnist_train.targets[mnist_train.targets == 3] = 0.0
-mnist_train.targets[mnist_train.targets == 8] = 1.0
+threes_eights_train = list(filter(lambda x: np.isin(x[1], [3, 8]), mnist_train)) # 3s and 8s
+threes_eights_train = [(x[0], 0.0 if x[1] == 3 else 1.0) for x in threes_eights_train]
 
 mnist_test = datasets.MNIST("../data", train=False, download=True, transform=transforms.ToTensor())
-three_eight = torch.logical_or(mnist_test.targets == 3, mnist_test.targets == 8)
-mnist_test.data = mnist_test.data[three_eight]/255.
-mnist_test.targets = mnist_test.targets[three_eight]
-mnist_test.targets[mnist_test.targets == 3] = 0.0
-mnist_test.targets[mnist_test.targets == 8] = 1.0
+threes_eights_test = list(filter(lambda x: np.isin(x[1], [3, 8]), mnist_test)) # 3s and 8s
+threes_eights_test = [(x[0], 0.0 if x[1] == 3 else 1.0) for x in threes_eights_test]
 
-train_data = DataLoader(mnist_train, batch_size=100, shuffle=False)
-test_data = DataLoader(mnist_test, batch_size=100, shuffle=False)
+train_data = DataLoader(threes_eights_train, batch_size=100, shuffle=False)
+test_data = DataLoader(threes_eights_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-6
@@ -54,8 +48,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 model_robust_fgsm = nn.Linear(N, 1)
@@ -78,8 +72,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 model_robust_pgd = nn.Linear(N, 1)
@@ -102,8 +96,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 model_robust_trades = nn.Linear(N, 1)
@@ -126,8 +120,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)

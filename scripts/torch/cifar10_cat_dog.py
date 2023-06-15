@@ -8,21 +8,17 @@ from adversary.torch.solver import adversarial_training_fast_gradient_sign_metho
     robust_adv_data_driven_binary_classifier
 from utils.torch.solver import training
 
-# Using only cat(3) and doct(5)
+# Using only cat(3) and dog(5)
 cifar10_train = datasets.CIFAR10("../data", train=True, download=True, transform=transforms.ToTensor())
-cat_dog = [(x == 3 or x == 5) for x in cifar10_train.targets]
-cifar10_train.data = cifar10_train.data[cat_dog] / 255.  # normalizing
-cifar10_train.targets = list(np.array(cifar10_train.targets)[cat_dog])
-cifar10_train.targets = [0. if x == 3 else 1.0 for x in cifar10_train.targets]
+cat_dog_train = list(filter(lambda x: np.isin(x[1], [3, 5]), cifar10_train)) #cats and dogs
+cat_dog_train = [(x[0], 0.0 if x[1] == 3 else 1.0) for x in cat_dog_train]
 
 cifar10_test = datasets.CIFAR10("../data", train=False, download=True, transform=transforms.ToTensor())
-cat_dog = [(x == 3 or x == 5) for x in cifar10_test.targets]
-cifar10_test.data = cifar10_test.data[cat_dog] / 255.  # normalizing
-cifar10_test.targets = list(np.array(cifar10_test.targets)[cat_dog])
-cifar10_test.targets = [0. if x == 3 else 1.0 for x in cifar10_test.targets]
+cat_dog_test = list(filter(lambda x: np.isin(x[1], [3, 5]), cifar10_test)) #cats and dogs
+cat_dog_test = [(x[0], 0.0 if x[1] == 3 else 1.0) for x in cat_dog_test]
 
-train_data = DataLoader(cifar10_train, batch_size=100, shuffle=False)
-test_data = DataLoader(cifar10_test, batch_size=100, shuffle=False)
+train_data = DataLoader(cat_dog_train, batch_size=100, shuffle=False)
+test_data = DataLoader(cat_dog_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-5
@@ -52,8 +48,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 model_robust_fgsm = nn.Linear(N, 1)
@@ -76,8 +72,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 model_robust_pgd = nn.Linear(N, 1)
@@ -100,8 +96,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 model_robust_trades = nn.Linear(N, 1)
@@ -124,8 +120,8 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    if np.abs(delta) <= tol:
-        break
+    #if np.abs(delta) <= tol:
+    #    break
 print()
 
 our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)

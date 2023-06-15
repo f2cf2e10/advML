@@ -12,15 +12,19 @@ from utils.torch.types import Norm
 
 
 def adversarial_training_fast_gradient_sign_method(data: DataLoader, model: Module, loss_fn: Module,
-                                                   adv_loss_fn: Module, opt: bool = False, xi: float = 0.2, 
+                                                   adv_loss_fn: Module, opt: bool = False, xi: float = 0.2,
                                                    norm_bound: float = np.Inf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        x_adv = torch.clamp(fast_gradient_sign_method(model, adv_loss_fn, nn.Flatten()(x), y, xi), 
+        x_adv = torch.clamp(fast_gradient_sign_method(model, adv_loss_fn, nn.Flatten(1, x.dim()-1)(x), y, xi),
                             min=-norm_bound, max=norm_bound)
+        ####DEBUG
+        # import matplotlib.pyplot as plt; plt.imshow(np.transpose(nn.Unflatten(0,(3, 32, 32))(x_adv[0]), (1, 2, 0))); plt.show()
+        # import matplotlib.pyplot as plt; plt.imshow(nn.Unflatten(1,(28, 28))(x_adv[0])); plt.show()
+        ####
         y_hat = model(x_adv)[:, 0]
         loss = loss_fn(y_hat, y.float())
         if opt:
@@ -41,7 +45,7 @@ def adversarial_training_projected_gradient_descent(data: DataLoader, model: Mod
     n = len(data.dataset)
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        x_adv = torch.clamp(projected_gradient_descent_method(model, adv_loss_fn, proj, nn.Flatten()(x), y, xi), 
+        x_adv = torch.clamp(projected_gradient_descent_method(model, adv_loss_fn, proj, nn.Flatten(1, x.dim()-1)(x), y, xi),
                             min=-norm_bound, max=norm_bound)
         y_hat = model(x_adv)[:, 0]
         loss = loss_fn(y_hat, y.float())
@@ -63,9 +67,9 @@ def adversarial_training_trades(data: DataLoader, model: Module, loss_fn: Module
     n = len(data.dataset)
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        x_0 = nn.Flatten()(x) if x.ndim > 1 else x
+        x_0 = nn.Flatten(1, x.dim()-1)(x)
         y_x_0 = Variable(((model(x_0)[:, 0]).sign() + 1) / 2)
-        x_adv = Variable(torch.clamp(x_0 + sigma * torch.randn_like(x_0), 
+        x_adv = Variable(torch.clamp(x_0 + sigma * torch.randn_like(x_0),
                                      min=-norm_bound, max=norm_bound), requires_grad=True)
         adv_optimizer = optim.SGD([x_adv], lr=1e-1)
         for k_i in range(k):
@@ -91,7 +95,7 @@ def robust_adv_data_driven_binary_classifier(data: DataLoader, xi: float = 0.2, 
     def _build_constraint_matrix(xi: float, data: Dataset, norm_bound: float = 1.0) -> matrix:
         vals = []
         for x_i, y_i in data:
-            x = (nn.Flatten()(x_i) if x_i.ndim > 1 else x_i).numpy()
+            x = (nn.Flatten(1, x_i.dim()-1)(x_i)).numpy()
             y = y_i.numpy() if isinstance(y_i, torch.Tensor) else y_i
             for i in range(len(y)):
                 vals += [-(2 * y[i] - 1) * np.hstack([x[i, :], 1.0]) / (xi * norm_bound)]
@@ -128,7 +132,7 @@ def robust_adv_data_driven_binary_classifier(data: DataLoader, xi: float = 0.2, 
 
     total_err = 0
     for x_i, y_i in data:
-        x = nn.Flatten()(x_i) if x_i.ndim > 1 else x_i
+        x = nn.Flatten(1, x_i.dim() - 1)(x_i)
         y = y_i
         y_hat = model(x).T[0]
         total_err += (((y_hat > 0) * (y == 0) + (y_hat < 0) * (y == 1)) * 1.0).sum().item()

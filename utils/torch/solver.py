@@ -10,7 +10,7 @@ def training(data: DataLoader, model: Module, loss_fn: Module, opt: bool = False
     n = len(data.dataset)
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        yp = model(nn.Flatten()(x))[:, 0]
+        yp = model(nn.Flatten(1, x.dim()-1)(x))[:, 0]
         loss = loss_fn(yp, y.float())
         if opt:
             optimizer = optim.SGD(model.parameters(), lr=1e-1)

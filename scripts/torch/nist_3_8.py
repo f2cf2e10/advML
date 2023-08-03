@@ -22,7 +22,7 @@ test_data = DataLoader(threes_eights_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-6
-xi = 0.01
+xi = 0.25
 norm_bound = 1.0
 maxIter = 10
 N = 28*28

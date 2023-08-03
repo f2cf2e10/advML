@@ -22,7 +22,7 @@ test_data = DataLoader(cat_dog_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-5
-xi = 0.1
+xi = 0.25
 norm_bound = 1.0
 maxIter = 10
 N = 3 * 32 * 32

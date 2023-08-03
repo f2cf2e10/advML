@@ -20,7 +20,8 @@ test_data = DataLoader(zeros_ones_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-5
-xi = 0.1
+xi = 0.2
+lamb = 5.0
 norm_bound = 1.0
 maxIter = 10
 N = 28 * 28
@@ -40,7 +41,7 @@ for _ in range(maxIter):
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
         test_data, model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
+        test_data, model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound, lamb=lamb)
     print("Plain\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -54,7 +55,7 @@ model_robust_fgsm = nn.Linear(N, 1)
 loss_fn = nn.BCEWithLogitsLoss()
 delta = np.Inf
 previous_train_loss = np.Inf
-for _ in range(maxIter):
+for i in range(maxIter):
     train_err, train_loss = adversarial_training_fast_gradient_sign_method(
         train_data, model_robust_fgsm, loss_fn, adv_loss_fn, True, xi=xi, norm_bound=norm_bound)
     test_err, test_loss = adversarial_training_fast_gradient_sign_method(
@@ -64,7 +65,7 @@ for _ in range(maxIter):
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
         test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
+        test_data, model_robust_fgsm, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound, lamb=lamb)
     print("FGSM\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -88,7 +89,7 @@ for _ in range(maxIter):
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
         test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
+        test_data, model_robust_pgd, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound, lamb=lamb)
     print("PGD\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -104,15 +105,15 @@ delta = np.Inf
 previous_train_loss = np.Inf
 for _ in range(maxIter):
     train_err, train_loss = adversarial_training_trades(
-        train_data, model_robust_trades, loss_fn, adv_loss_fn, True, xi=xi)
+        train_data, model_robust_trades, loss_fn, adv_loss_fn, True, xi=xi, lamb=lamb)
     test_err, test_loss = adversarial_training_trades(
-        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
+        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound, lamb=lamb)
     adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
         test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
         test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
     adv_trades_err, adv_trades_loss = adversarial_training_trades(
-        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
+        test_data, model_robust_trades, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound, lamb=lamb)
     print("TRADES\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
@@ -130,7 +131,7 @@ adv_sign_err, adv_sign_loss = adversarial_training_fast_gradient_sign_method(
 adv_pgd_err, adv_pgd_loss = adversarial_training_projected_gradient_descent(
     test_data, our_model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
 adv_trades_err, adv_trades_loss = adversarial_training_trades(
-    test_data, our_model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound)
+    test_data, our_model, loss_fn, adv_loss_fn, xi=xi, norm_bound=norm_bound, lamb=lamb)
 print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')

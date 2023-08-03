@@ -23,7 +23,9 @@ def adversarial_training_fast_gradient_sign_method(data: DataLoader, model: Modu
                             min=-norm_bound, max=norm_bound)
         ####DEBUG
         # import matplotlib.pyplot as plt; plt.imshow(np.transpose(nn.Unflatten(0,(3, 32, 32))(x_adv[0]), (1, 2, 0))); plt.show()
-        # import matplotlib.pyplot as plt; plt.imshow(nn.Unflatten(1,(28, 28))(x_adv[0])); plt.show()
+        # np.abs(np.array(nn.Unflatten(0,(3, 32, 32))(x_adv[0]) - x[0]))
+        # import matplotlib.pyplot as plt; plt.imshow(nn.Unflatten(0,(28, 28))(x_adv[0]), cmap='gray'); plt.show()
+        # import matplotlib.pyplot as plt; plt.imshow(np.transpose(x[0], (1, 2, 0)), cmap='gray'); plt.show()
         ####
         y_hat = model(x_adv)[:, 0]
         loss = loss_fn(y_hat, y.float())

@@ -8,7 +8,7 @@ mnist_test = datasets.MNIST("../data", train=False, download=True, transform=tra
 train_loader = DataLoader(mnist_train, batch_size=100, shuffle=True)
 test_loader = DataLoader(mnist_test, batch_size=100, shuffle=False)
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 torch.manual_seed(0)
 

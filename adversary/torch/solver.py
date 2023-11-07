@@ -14,7 +14,7 @@ from utils.torch.types import Norm
 def adversarial_training_fast_gradient_sign_method(data: DataLoader, model: Module, loss_fn: Module,
                                                    adv_loss_fn: Module, opt: bool = False, xi: float = 0.2,
                                                    norm_bound: float = np.Inf):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:
@@ -42,7 +42,7 @@ def adversarial_training_fast_gradient_sign_method(data: DataLoader, model: Modu
 def adversarial_training_projected_gradient_descent(data: DataLoader, model: Module, loss_fn: Module,
                                                     adv_loss_fn: Module, opt: bool = False, proj: Norm = Linf,
                                                     xi: float = 0.2, norm_bound: float = np.Inf):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:
@@ -64,7 +64,7 @@ def adversarial_training_projected_gradient_descent(data: DataLoader, model: Mod
 def adversarial_training_trades(data: DataLoader, model: Module, loss_fn: Module, adv_loss_fn: Module,
                                 opt: bool = False, proj: Norm = Linf, xi: float = 0.2, lamb: float = 1.0,
                                 k: int = 20, eta1: float = 0.025, sigma: float = 0.001, norm_bound:float = np.Inf):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:

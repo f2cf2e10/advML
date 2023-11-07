@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 
 def training(data: DataLoader, model: Module, loss_fn: Module, opt: bool = False):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:

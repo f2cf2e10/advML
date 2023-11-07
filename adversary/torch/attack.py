@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 from torch.autograd import Variable
 from torch.nn import Module
 from torch.utils.data import Dataset
@@ -13,7 +12,7 @@ def fast_gradient_sign_method(model: Module, loss_fn: Module, x: Dataset, y: Dat
 
 
 def fast_gradient_dual_norm_method(model: Module, loss_fn: Module, norm: Norm, x: Dataset, y: Dataset, xi: float):
-    delta = torch.zeros_like(x, requires_grad=True)
+    delta = torch.zeros_like(x, requires_grad=True, device="cpu")
     y_hat = model(x + delta)
     if y_hat.shape != y.shape:
         y_hat = y_hat[:, 0]

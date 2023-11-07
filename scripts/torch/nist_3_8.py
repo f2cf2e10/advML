@@ -29,6 +29,7 @@ N = 28*28
 loss_fn = nn.BCEWithLogitsLoss()
 adv_loss_fn = nn.BCEWithLogitsLoss()
 
+t0 = time.time()
 model = nn.Linear(N, 1)
 print("Method\tTrain Acc\tTrain Loss\tPlain Test Acc\tPlain Test Loss\tFGSM Test Acc\tFGSM Test Loss\tPGD Test Acc\t" +
       "PGD Test Loss\tTRADES Test Acc\tTRADES Test Loss")
@@ -136,3 +137,5 @@ adv_trades_err, adv_trades_loss = adversarial_training_trades(
 print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
+
+time.time() - t0

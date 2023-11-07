@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import torch
 from torch import nn
@@ -22,7 +23,7 @@ test_data = DataLoader(threes_eights_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-6
-xi = 0.25
+xi = 0.05
 norm_bound = 1.0
 maxIter = 10
 N = 28*28
@@ -138,4 +139,4 @@ print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
 
-time.time() - t0
+print(time.time() - t0)

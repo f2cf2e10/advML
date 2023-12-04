@@ -1,4 +1,3 @@
-import time
 import numpy as np
 import torch
 from torch import nn
@@ -23,14 +22,13 @@ test_data = DataLoader(threes_eights_test, batch_size=100, shuffle=False)
 
 torch.manual_seed(171)
 tol = 1E-6
-xi = 0.05
+xi = 0.2
 norm_bound = 1.0
 maxIter = 10
 N = 28*28
 loss_fn = nn.BCEWithLogitsLoss()
 adv_loss_fn = nn.BCEWithLogitsLoss()
 
-t0 = time.time()
 model = nn.Linear(N, 1)
 print("Method\tTrain Acc\tTrain Loss\tPlain Test Acc\tPlain Test Loss\tFGSM Test Acc\tFGSM Test Loss\tPGD Test Acc\t" +
       "PGD Test Loss\tTRADES Test Acc\tTRADES Test Loss")
@@ -104,6 +102,7 @@ print()
 
 model_robust_trades = nn.Linear(N, 1)
 loss_fn = nn.BCEWithLogitsLoss()
+adv_loss_fn = nn.KLDivLoss()
 delta = np.Inf
 previous_train_loss = np.Inf
 for _ in range(maxIter):
@@ -138,5 +137,3 @@ adv_trades_err, adv_trades_loss = adversarial_training_trades(
 print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
-
-print(time.time() - t0)

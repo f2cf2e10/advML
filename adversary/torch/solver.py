@@ -7,7 +7,6 @@ from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 
 from adversary.torch.attack import fast_gradient_sign_method, projected_gradient_descent_method
-from adversary.torch.trades import trades_loss
 from utils.torch.norm import Linf
 from utils.torch.types import Norm
 
@@ -68,53 +67,32 @@ def adversarial_training_trades(data: DataLoader, model: Module, loss_fn: Module
     device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
+
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-
-        # calculate robust loss
+        x_0 = nn.Flatten(1, x.dim()-1)(x)
+        y_x_0 = Variable(((model(x_0)[:, 0]).sign() + 1) / 2)
+        x_adv = Variable(torch.clamp(x_0 + sigma * torch.randn_like(x_0),
+                                     min=-norm_bound, max=norm_bound), requires_grad=True)
+        adv_optimizer = optim.SGD([x_adv], lr=1e-1)
+        for k_i in range(k):
+            adv_optimizer.zero_grad()
+            loss = adv_loss_fn(model(x_adv), model(x_0))
+            loss.backward()
+            x_adv = Variable(proj.proj(x_adv + eta1 * torch.sign(x_adv.grad.detach()), x_0, xi), requires_grad=True)
+        y_hat = model(x_0)[:, 0]
+        y_hat_0_1 = (y_hat.sign() + 1) / 2
+        y_hat_adv = Variable(model(x_adv)[:, 0])
+        loss = loss_fn(y_hat, y.float()) + loss_fn(y_hat_0_1, y_hat_adv) / lamb
         if opt:
             optimizer = optim.SGD(model.parameters(), lr=1e-1)
             optimizer.zero_grad()
-            loss, x_adv = trades_loss(model=model,
-                                      x=x,
-                                      y=y,
-                                      optimizer=optimizer,
-                                      step_size=eta1,
-                                      epsilon=xi,
-                                      perturb_steps=k,
-                                      beta=lamb,
-                                      distance='l_inf',
-                                      sigma=sigma)
             loss.backward()
             optimizer.step()
-            x_0 = nn.Flatten(1, x.dim()-1)(x)
-            y_hat = model(x_0)[:, 0]
-            total_loss += loss.item() * x.shape[0]
-            total_err += ((y_hat > 0) * (y == 0) + (y_hat < 0) * (y == 1)).sum().item()
 
-    # for x_i, y_i in data:
-    #     x, y = x_i.to(device), y_i.to(device)
-    #     x_0 = nn.Flatten(1, x.dim()-1)(x)
-    #     y_x_0 = Variable(((model(x_0)[:, 0]).sign() + 1) / 2)
-    #     x_adv = Variable(torch.clamp(x_0 + sigma * torch.randn_like(x_0),
-    #                                  min=-norm_bound, max=norm_bound), requires_grad=True)
-    #     adv_optimizer = optim.SGD([x_adv], lr=1e-1)
-    #     for k_i in range(k):
-    #         adv_optimizer.zero_grad()
-    #         loss = adv_loss_fn(model(x_adv)[:, 0], y_x_0)
-    #         loss.backward()
-    #         x_adv = Variable(proj.proj(x_adv + eta1 * torch.sign(x_adv.grad.detach()), x_0, xi), requires_grad=True)
-    #     y_hat = model(x_0)[:, 0]
-    #     y_hat_0_1 = (y_hat.sign() + 1) / 2
-    #     y_hat_adv = Variable(model(x_adv)[:, 0])
-    #     loss = loss_fn(y_hat, y.float()) + loss_fn(y_hat_adv, y_hat_0_1) / lamb
-    #     if opt:
-    #         optimizer = optim.SGD(model.parameters(), lr=1e-1)
-    #         optimizer.zero_grad()
-    #         loss.backward()
-    #         optimizer.step()
-    #    total_err += ((y_hat > 0) * (y == 0) + (y_hat < 0) * (y == 1)).sum().item()
-    #    total_loss += loss.item() * x.shape[0]
+        total_err += ((y_hat > 0) * (y == 0) + (y_hat < 0) * (y == 1)).sum().item()
+        total_loss += loss.item() * x.shape[0]
+
     return total_err / n, total_loss / n
 
 

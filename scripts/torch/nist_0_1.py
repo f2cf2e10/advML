@@ -101,6 +101,7 @@ print()
 
 model_robust_trades = nn.Linear(N, 1)
 loss_fn = nn.BCEWithLogitsLoss()
+adv_loss_fn = nn.KLDivLoss()
 delta = np.Inf
 previous_train_loss = np.Inf
 for _ in range(maxIter):

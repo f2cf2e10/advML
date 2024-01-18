@@ -6,15 +6,16 @@ from torch.utils.data import DataLoader
 from adversary.torch.solver import adversarial_training_fast_gradient_sign_method, \
     adversarial_training_projected_gradient_descent, adversarial_training_trades, \
     robust_adv_data_driven_binary_classifier
+from utils.eval import RoMa
 from utils.torch.solver import training
 
 # Using only 0s and 1s
 mnist_train = datasets.MNIST("../data", train=True, download=True, transform=transforms.ToTensor())
-threes_eights_train = list(filter(lambda x: np.isin(x[1], [3, 8]), mnist_train)) # 3s and 8s
+threes_eights_train = list(filter(lambda x: np.isin(x[1], [3, 8]), mnist_train))  # 3s and 8s
 threes_eights_train = [(x[0], 0.0 if x[1] == 3 else 1.0) for x in threes_eights_train]
 
 mnist_test = datasets.MNIST("../data", train=False, download=True, transform=transforms.ToTensor())
-threes_eights_test = list(filter(lambda x: np.isin(x[1], [3, 8]), mnist_test)) # 3s and 8s
+threes_eights_test = list(filter(lambda x: np.isin(x[1], [3, 8]), mnist_test))  # 3s and 8s
 threes_eights_test = [(x[0], 0.0 if x[1] == 3 else 1.0) for x in threes_eights_test]
 
 train_data = DataLoader(threes_eights_train, batch_size=100, shuffle=False)
@@ -25,7 +26,7 @@ tol = 1E-6
 xi = 0.2
 norm_bound = 1.0
 maxIter = 10
-N = 28*28
+N = 28 * 28
 loss_fn = nn.BCEWithLogitsLoss()
 adv_loss_fn = nn.BCEWithLogitsLoss()
 
@@ -48,7 +49,7 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    #if np.abs(delta) <= tol:
+    # if np.abs(delta) <= tol:
     #    break
 print()
 
@@ -72,7 +73,7 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    #if np.abs(delta) <= tol:
+    # if np.abs(delta) <= tol:
     #    break
 print()
 
@@ -96,7 +97,7 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    #if np.abs(delta) <= tol:
+    # if np.abs(delta) <= tol:
     #    break
 print()
 
@@ -121,7 +122,7 @@ for _ in range(maxIter):
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
     delta = previous_train_loss - train_loss
     previous_train_loss = train_loss
-    #if np.abs(delta) <= tol:
+    # if np.abs(delta) <= tol:
     #    break
 print()
 
@@ -137,3 +138,12 @@ adv_trades_err, adv_trades_loss = adversarial_training_trades(
 print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
+
+prob = 0.5
+n = 1000
+N = len(test_data.dataset)
+robustness_model = [RoMa(prob, xi, test_data.dataset[i], 1000, model) for i in range(N)]
+robustness_model_pgd = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_pgd) for i in range(N)]
+robustness_model_fgsm = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_fgsm) for i in range(N)]
+robustness_model_trades = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_trades) for i in range(N)]
+robustness_model_ours = [RoMa(prob, xi, test_data.dataset[i], 1000, our_model) for i in range(N)]

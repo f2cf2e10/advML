@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from adversary.torch.solver import adversarial_training_fast_gradient_sign_method, \
     adversarial_training_projected_gradient_descent, adversarial_training_trades, \
     robust_adv_data_driven_binary_classifier
+from utils.eval import RoMa
 from utils.torch.solver import training
 
 # Using only 0s and 1s
@@ -21,7 +22,7 @@ test_data = DataLoader(zeros_ones_test, batch_size=100, shuffle=False)
 torch.manual_seed(171)
 tol = 1E-5
 xi = 0.2
-lamb = 5.0
+lamb = 1.0
 norm_bound = 1.0
 maxIter = 10
 N = 28 * 28
@@ -124,6 +125,8 @@ for _ in range(maxIter):
     #    break
 print()
 
+import time
+t0 = time.time()
 our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
 train_err, train_loss = training(train_data, our_model, loss_fn)
 test_err, test_loss = training(test_data, our_model, loss_fn)
@@ -136,3 +139,14 @@ adv_trades_err, adv_trades_loss = adversarial_training_trades(
 print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
     (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
     (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
+print()
+print(time.time-t0)
+
+prob = 0.5
+n = 1000
+N = len(test_data.dataset)
+robustness_model = [RoMa(prob, xi, test_data.dataset[i], 1000, model) for i in range(N)]
+robustness_model_pgd = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_pgd) for i in range(N)]
+robustness_model_fgsm = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_fgsm) for i in range(N)]
+robustness_model_trades = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_trades) for i in range(N)]
+robustness_model_ours = [RoMa(prob, xi, test_data.dataset[i], 1000, our_model) for i in range(N)]

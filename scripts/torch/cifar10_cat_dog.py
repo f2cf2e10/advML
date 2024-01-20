@@ -33,9 +33,13 @@ adv_loss_fn = nn.BCEWithLogitsLoss()
 model = nn.Linear(N, 1)
 
 for xi in xis:
+    torch.manual_seed(171)
+    loss_fn = nn.BCEWithLogitsLoss()
+    adv_loss_fn = nn.BCEWithLogitsLoss()
     model = nn.Linear(N, 1)
-    print("Method\tTrain Acc\tTrain Loss\tPlain Test Acc\tPlain Test Loss\tFGSM Test Acc\tFGSM Test Loss\tPGD Test Acc\t" +
-          "PGD Test Loss\tTRADES Test Acc\tTRADES Test Loss")
+    print(
+        "Method\tTrain Acc\tTrain Loss\tPlain Test Acc\tPlain Test Loss\tFGSM Test Acc\tFGSM Test Loss\tPGD Test Acc\t" +
+        "PGD Test Loss\tTRADES Test Acc\tTRADES Test Loss")
     delta = np.Inf
     previous_train_loss = np.Inf
     for _ in range(maxIter):
@@ -80,7 +84,7 @@ for xi in xis:
         # if np.abs(delta) <= tol:
         #    break
     print()
-    torch.save(model.state_dict(), "./models/cifar10_cat_dog_fgsm_xi_{}.pth".format(xi))
+    torch.save(model_robust_fgsm.state_dict(), "./models/cifar10_cat_dog_fgsm_xi_{}.pth".format(xi))
 
     model_robust_pgd = nn.Linear(N, 1)
     loss_fn = nn.BCEWithLogitsLoss()
@@ -105,7 +109,7 @@ for xi in xis:
         # if np.abs(delta) <= tol:
         #    break
     print()
-    torch.save(model.state_dict(), "./models/cifar10_cat_dog_pgd_xi_{}.pth".format(xi))
+    torch.save(model_robust_pgd.state_dict(), "./models/cifar10_cat_dog_pgd_xi_{}.pth".format(xi))
 
     model_robust_trades = nn.Linear(N, 1)
     loss_fn = nn.BCEWithLogitsLoss()
@@ -131,8 +135,9 @@ for xi in xis:
         # if np.abs(delta) <= tol:
         #    break
     print()
-    torch.save(model.state_dict(), "./models/cifar10_cat_dog_trades_xi_{}.pth".format(xi))
+    torch.save(model_robust_trades.state_dict(), "./models/cifar10_cat_dog_trades_xi_{}.pth".format(xi))
 
+    adv_loss_fn = nn.BCEWithLogitsLoss()
     our_model, adv_our_err, adv_our_loss = robust_adv_data_driven_binary_classifier(train_data, xi=xi)
     train_err, train_loss = training(train_data, our_model, loss_fn)
     test_err, test_loss = training(test_data, our_model, loss_fn)
@@ -145,7 +150,7 @@ for xi in xis:
     print("Ours\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}\t{:.7f}".format(
         (1 - train_err) * 100, train_loss, (1 - test_err) * 100, test_loss, (1 - adv_sign_err) * 100, adv_sign_loss,
         (1 - adv_pgd_err) * 100, adv_pgd_loss, (1 - adv_trades_err) * 100, adv_trades_loss), end='\r')
-    torch.save(model.state_dict(), "./models/cifar10_cat_dog_ours_xi_{}.pth".format(xi))
+    torch.save(our_model.state_dict(), "./models/cifar10_cat_dog_ours_xi_{}.pth".format(xi))
 
     prob = 0.5
     n = 1000
@@ -153,7 +158,8 @@ for xi in xis:
     robustness_model = [RoMa(prob, xi, test_data.dataset[i], 1000, model) for i in range(data_size)]
     robustness_model_pgd = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_pgd) for i in range(data_size)]
     robustness_model_fgsm = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_fgsm) for i in range(data_size)]
-    robustness_model_trades = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_trades) for i in range(data_size)]
+    robustness_model_trades = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_trades) for i in
+                               range(data_size)]
     robustness_model_ours = [RoMa(prob, xi, test_data.dataset[i], 1000, our_model) for i in range(data_size)]
     print()
 

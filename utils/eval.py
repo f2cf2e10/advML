@@ -14,8 +14,18 @@ def RoMa(delta, xi, x_y, n, model):
         y_i = model(x_i).detach().numpy()[0]
         prob = 1. / (1 + np.exp(-np.abs(y_i)))
         hic[i] = 1 - prob if np.sign(y) == np.sign(y_i) else prob
-    box_cox = sp.stats.boxcox([h for h in hic if h > 0.0])
-    mu = np.mean(box_cox[0])
-    sigma = np.std(box_cox[0])
-    delta_box_cox = sp.stats.boxcox(delta, box_cox[1])
-    return sp.stats.norm.cdf((delta_box_cox - mu) / sigma)
+    is_normal = sp.stats.anderson(hic)
+    if is_normal:
+        mu = np.mean(hic)
+        sigma = np.std(hic)
+        p = delta
+    else:
+        box_cox = sp.stats.boxcox([h for h in hic if h > 0.0])
+        is_normal_box_cox = sp.stats.anderson(box_cox)
+        if is_normal_box_cox:
+            mu = np.mean(box_cox[0])
+            sigma = np.std(box_cox)
+            p = sp.stats.boxcox(delta, box_cox[1])
+        else:
+            return np.NaN
+    return sp.stats.norm.cdf((p - mu) / sigma)

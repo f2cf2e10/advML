@@ -156,3 +156,10 @@ for xi in xis:
     robustness_model_fgsm = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_fgsm) for i in range(data_size)]
     robustness_model_trades = [RoMa(prob, xi, test_data.dataset[i], 1000, model_robust_trades) for i in range(data_size)]
     robustness_model_ours = [RoMa(prob, xi, test_data.dataset[i], 1000, our_model) for i in range(data_size)]
+    print()
+
+    print("Plain\t{:.7f}\t{:.7f}".format(np.mean(robustness_model), np.std(robustness_model)))
+    print("FGSM\t{:.7f}\t{:.7f}".format(np.mean(robustness_model_fgsm), np.std(robustness_model_fgsm)))
+    print("PGD\t{:.7f}\t{:.7f}".format(np.mean(robustness_model_pgd), np.std(robustness_model_pgd)))
+    print("TRADES\t{:.7f}\t{:.7f}".format(np.mean(robustness_model_trades), np.std(robustness_model_trades)))
+    print("Ours\t{:.7f}\t{:.7f}".format(np.mean(robustness_model_ours), np.std(robustness_model_ours)))

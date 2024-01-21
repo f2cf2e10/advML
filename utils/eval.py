@@ -4,7 +4,8 @@ import numpy as np
 import scipy as sp
 
 
-def RoMa(delta, xi, x_y, n, model):
+def RoMa(delta, xi, x_y, n, model, seed=171):
+    np.random.seed(seed)
     x = x_y[0]
     y = 2 * x_y[1] - 1
     x_0 = nn.Flatten(0, x.dim() - 1)(x)

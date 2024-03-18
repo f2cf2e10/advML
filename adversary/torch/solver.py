@@ -14,12 +14,12 @@ from utils.torch.types import Norm
 def adversarial_training_fast_gradient_sign_method(data: DataLoader, model: Module, loss_fn: Module,
                                                    adv_loss_fn: Module, opt: bool = False, xi: float = 0.2,
                                                    norm_bound: float = np.Inf):
-    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu"  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        x_adv = torch.clamp(fast_gradient_sign_method(model, adv_loss_fn, nn.Flatten(1, x.dim()-1)(x), y, xi),
+        x_adv = torch.clamp(fast_gradient_sign_method(model, adv_loss_fn, nn.Flatten(1, x.dim() - 1)(x), y, xi),
                             min=-norm_bound, max=norm_bound)
         ####DEBUG
         # import matplotlib.pyplot as plt; plt.imshow(np.transpose(nn.Unflatten(0,(3, 32, 32))(x_adv[0]), (1, 2, 0))); plt.show()
@@ -42,13 +42,14 @@ def adversarial_training_fast_gradient_sign_method(data: DataLoader, model: Modu
 def adversarial_training_projected_gradient_descent(data: DataLoader, model: Module, loss_fn: Module,
                                                     adv_loss_fn: Module, opt: bool = False, proj: Norm = Linf,
                                                     xi: float = 0.2, norm_bound: float = np.Inf):
-    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu"  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        x_adv = torch.clamp(projected_gradient_descent_method(model, adv_loss_fn, proj, nn.Flatten(1, x.dim()-1)(x), y, xi),
-                            min=-norm_bound, max=norm_bound)
+        x_adv = torch.clamp(
+            projected_gradient_descent_method(model, adv_loss_fn, proj, nn.Flatten(1, x.dim() - 1)(x), y, xi),
+            min=-norm_bound, max=norm_bound)
         y_hat = model(x_adv)[:, 0]
         loss = loss_fn(y_hat, y.float())
         if opt:
@@ -63,14 +64,14 @@ def adversarial_training_projected_gradient_descent(data: DataLoader, model: Mod
 
 def adversarial_training_trades(data: DataLoader, model: Module, loss_fn: Module, adv_loss_fn: Module,
                                 opt: bool = False, proj: Norm = Linf, xi: float = 0.2, lamb: float = 1.0,
-                                k: int = 20, eta1: float = 0.025, sigma: float = 0.001, norm_bound:float = np.Inf):
-    device = "cpu" #torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+                                k: int = 20, eta1: float = 0.025, sigma: float = 0.001, norm_bound: float = np.Inf):
+    device = "cpu"  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     total_loss, total_err = 0., 0.
     n = len(data.dataset)
 
     for x_i, y_i in data:
         x, y = x_i.to(device), y_i.to(device)
-        x_0 = nn.Flatten(1, x.dim()-1)(x)
+        x_0 = nn.Flatten(1, x.dim() - 1)(x)
         y_x_0 = Variable(((model(x_0)[:, 0]).sign() + 1) / 2)
         x_adv = Variable(torch.clamp(x_0 + sigma * torch.randn_like(x_0),
                                      min=-norm_bound, max=norm_bound), requires_grad=True)
@@ -100,7 +101,7 @@ def robust_adv_data_driven_binary_classifier(data: DataLoader, xi: float = 0.2, 
     def _build_constraint_matrix(xi: float, data: Dataset, norm_bound: float = 1.0) -> matrix:
         vals = []
         for x_i, y_i in data:
-            x = (nn.Flatten(1, x_i.dim()-1)(x_i)).numpy()
+            x = (nn.Flatten(1, x_i.dim() - 1)(x_i)).numpy()
             y = y_i.numpy() if isinstance(y_i, torch.Tensor) else y_i
             for i in range(len(y)):
                 vals += [-(2 * y[i] - 1) * np.hstack([x[i, :], 1.0]) / (xi * norm_bound)]
@@ -129,6 +130,58 @@ def robust_adv_data_driven_binary_classifier(data: DataLoader, xi: float = 0.2, 
                 [_zero(m, d), _zero(m, d), -_id(d), -_id(d), _one(1, d)]])
     solvers.options['show_progress'] = False
     sol = solvers.lp(c, A, b)
+    w = sol['x'][0:d]
+    model = nn.Linear(d, 1)
+    model.weight = nn.Parameter(torch.Tensor(np.array(w[0:(d - 1)]).T))
+    model.bias = nn.Parameter(torch.Tensor(np.array([w[d - 1]])))
+    loss = sol['primal objective']
+
+    total_err = 0
+    for x_i, y_i in data:
+        x = nn.Flatten(1, x_i.dim() - 1)(x_i)
+        y = y_i
+        y_hat = model(x).T[0]
+        total_err += (((y_hat > 0) * (y == 0) + (y_hat < 0) * (y == 1)) * 1.0).sum().item()
+    return model, total_err / m, loss
+
+
+def robust_stable_adv_data_driven_binary_classifier(data: DataLoader, xi: float = 0.2, norm_bound: float = 1.0,
+                                                    lamb: float = 1.0) -> np.array:
+    def _build_constraint_matrix(xi: float, data: Dataset, norm_bound: float = 1.0) -> matrix:
+        vals = []
+        for x_i, y_i in data:
+            x = (nn.Flatten(1, x_i.dim() - 1)(x_i)).numpy()
+            y = y_i.numpy() if isinstance(y_i, torch.Tensor) else y_i
+            for i in range(len(y)):
+                vals += [-(2 * y[i] - 1) * np.hstack([x[i, :], 1.0]) / (xi * norm_bound)]
+            # if model.const:
+            #    vals += [-(2 * y - 1) * np.hstack([x, 1.0]) / (xi * norm_bound)]
+            # else:
+            #    vals += [-(2 * y - 1) * x / (xi * norm_bound)]
+        vals = np.array(vals).astype(np.double)
+        return matrix(vals)
+
+    def _zero(m: int, d: int) -> matrix:
+        return matrix(np.zeros([m, d]))
+
+    def _one(m: int, d: int) -> matrix:
+        return matrix(np.ones([m, d]))
+
+    def _id(m: int) -> matrix:
+        return matrix(np.eye(m))
+
+    S = _build_constraint_matrix(xi, data)
+    m, d = np.shape(S)
+    c = matrix([0.0] * d + [1. / m] * m + [0.0] * d)
+    b = matrix([[-2.0] * m + [0.0] * m + [0.0] * d + [0.0] * d + [norm_bound]])
+    A = matrix([[S, _zero(m, d), _id(d), -_id(d), _zero(1, d)],
+                [-_id(m), -_id(m), _zero(d, m), _zero(d, m), _zero(1, m)],
+                [_zero(m, d), _zero(m, d), -_id(d), -_id(d), _one(1, d)]])
+    I = matrix([[2. * lamb * _id(d), _zero(m + d, d)],
+                [_zero(d, m), _zero(m + d, m)],
+                [_zero(d, d), _zero(m + d, d)]])
+    solvers.options['show_progress'] = False
+    sol = solvers.qp(I, c, A, b)
     w = sol['x'][0:d]
     model = nn.Linear(d, 1)
     model.weight = nn.Parameter(torch.Tensor(np.array(w[0:(d - 1)]).T))

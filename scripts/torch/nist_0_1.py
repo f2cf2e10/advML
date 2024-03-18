@@ -22,9 +22,6 @@ lamb = 1.0
 norm_bound = 1.0
 maxIter = 10
 N = 28 * 28
-loss_fn = nn.BCEWithLogitsLoss()
-adv_loss_fn = nn.BCEWithLogitsLoss()
-model = nn.Linear(N, 1)
 train = False
 
 for xi in xis:
